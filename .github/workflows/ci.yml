@@ -1,0 +1,136 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# CI Pipeline — Aprovecha!
+# Proyecto: Ingeniería de Software 2 — Gang of Four
+# Referencia IEEE 730 SQA: Sección 5 — Plan de Verificación y Validación
+#
+# Jobs:
+#   1. lint    → Detekt (complejidad) + ktlint (estilo)
+#   2. test    → JUnit5 + JaCoCo (cobertura mínima 70%)
+#
+# Triggers:
+#   - Push a main
+#   - Pull Request hacia develop
+# ─────────────────────────────────────────────────────────────────────────────
+
+name: CI — Lint & Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - develop
+
+# Cancelar runs anteriores en la misma rama si hay un nuevo push
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: '17'
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+
+jobs:
+  # ─── JOB 1: ANÁLISIS ESTÁTICO ──────────────────────────────────────────────
+  lint:
+    name: "🔍 Lint — Detekt + ktlint"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout código fuente
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Dar permisos a gradlew
+        run: chmod +x ./gradlew
+
+      - name: "Detekt — Análisis estático (equivalente Radon + Linter)"
+        run: ./gradlew detekt --stacktrace
+        # Falla el pipeline si hay issues críticos (maxIssues: 0 en detekt.yml)
+
+      - name: Subir reporte Detekt como artifact
+        if: always()   # Subir aunque falle para poder revisar
+        uses: actions/upload-artifact@v4
+        with:
+          name: detekt-report
+          path: build/reports/detekt/
+          retention-days: 30
+
+  # ─── JOB 2: TESTS UNITARIOS + COBERTURA ────────────────────────────────────
+  test:
+    name: "✅ Unit Tests — JUnit5 + JaCoCo (≥70%)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: lint   # Solo corre si lint pasa
+
+    steps:
+      - name: Checkout código fuente
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/libs.versions.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Dar permisos a gradlew
+        run: chmod +x ./gradlew
+
+      - name: Ejecutar tests unitarios
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Generar reporte JaCoCo
+        run: ./gradlew jacocoTestReport --stacktrace
+
+      - name: "Verificar cobertura mínima (≥70%) — IEEE 730 §5.3"
+        run: ./gradlew jacocoTestCoverageVerification --stacktrace
+        # Falla si la cobertura de instrucciones es menor al 70%
+
+      - name: Subir reporte de cobertura JaCoCo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: |
+            **/build/reports/jacoco/
+            **/build/reports/tests/
+          retention-days: 30
+
+      - name: Publicar resultado de tests en PR
+        if: github.event_name == 'pull_request'
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: '**/build/test-results/testDebugUnitTest/**.xml'
+          check_name: 'Unit Test Results'
+          fail_on_failure: true

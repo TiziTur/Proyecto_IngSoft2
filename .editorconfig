@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# .editorconfig — Configuración de formato para Aprovecha!
+# Usado por ktlint y el IDE (Android Studio / IntelliJ)
+# Referencia IEEE 730 SQA: Sección 4.3 — Estándares de codificación
+# ─────────────────────────────────────────────────────────────────────────────
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+max_line_length = 120
+
+# ktlint rules
+ktlint_standard = enabled
+ktlint_standard_no-wildcard-imports = enabled
+ktlint_standard_import-ordering = enabled
+ktlint_standard_indent = enabled
+ktlint_standard_no-empty-file = enabled
+ktlint_standard_no-trailing-spaces = enabled
+ktlint_standard_no-unit-return = enabled
+ktlint_standard_annotation = enabled
+
+# Composables: PascalCase permitido para funciones anotadas con @Composable
+ktlint_function_naming_ignore_when_annotated_with = Composable
+
+[*.{xml,html}]
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,toml}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

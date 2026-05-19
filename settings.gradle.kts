@@ -29,4 +29,5 @@ include(":core:data")
 include(":core:domain")
 include(":core:ui")
 include(":feature:products")
- 
+include(":feature:auth")
+include(":feature:reservations")

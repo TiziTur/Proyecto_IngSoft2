@@ -1,0 +1,51 @@
+PROPUESTA DE PROYECTO: Sistema de Gestión de Rescate de Alimentos
+
+Grupo: Gang of four - Los patrones GOF
+
+
+NOMBRE DEL PROYECTO: Aprovecha!
+
+PROBLEMA QUE RESUELVE: Desperdicio de comida en los comercios locales (panaderias, verdulerias, etc) que terminan en la basura al final del día.
+
+USUARIOS / PÚBLICO OBJETIVO: Comercios gastronómicos y usuario interesados en comprar alimentos sustentables y a menor precio 
+
+ALCANCE FUNCIONAL:
+
+REQ-F01: El comercio debe poder registrarse en la plataforma.
+
+REQ-F02: El comercio debe poder publicar alimentos no vendidos en el día con descuentos.
+
+REQ-F03: El usuario debe poder ver la lista de productos disponibles en un radio cercano a su ubicación.
+
+REQ-F04: El usuario debe poder reservar un pack de alimentos para ser retirados.
+
+REQ-F05: El encargado del local debe poder marcar una reserva como "retirada".
+REQ-F06: El usuario debe poder cancelar una reserva si ya no la desea.
+
+ALCANCE NO FUNCIONAL:
+
+REQ-NF01: El sistema debe garantizar la disponibilidad y consistencia de las reservas, evitando que dos usuarios reserven el mismo pack de alimentos simultáneamente. 
+
+REQ-NF02: El sistema debe entregarse en un formato ejecutable (APK para Android) que no supere los 50 MB de peso para facilitar su descarga con datos móviles.
+
+STACK TECNOLÓGICO:
+- Lenguaje: Kotlin
+- Framework: Jetpack Compose
+- Base de datos: Room (Local) + PostgreSQL (Remota)
+- Backend: API REST (Node.js) para conectar la app con PostgreSQL 
+
+- Otras herramientas: 
+Git/GitHub (control de versiones)
+Android Studio (IDE)
+Detekt (análisis estático específico para Kotlin)
+JUnit (test unitario) / Espresso (test de UI)
+Retrofit o Ktor (consumo de API) 
+
+
+RIESGOS PRINCIPALES Y CÓMO LOS MITIGARÁN:
+
+- Trazabilidad: Perder el rastro de qué requerimientos puede ser algo devastador a la hora de realizar una entrega, se realizará un matriz de trazabilidad (RTM) para no perder de vista ningún requerimiento. 
+
+- Confiabilidad: Colapso del sistema si muchos usuarios intentan reservar excedentes simultáneamente al horario de cierre, esto lo resolvemos a partir de realizar tests de carga previos al lanzamiento e implementando una arquitectura capaz de soportar altos niveles de concurrencia.
+
+

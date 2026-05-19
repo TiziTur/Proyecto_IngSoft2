@@ -1,0 +1,238 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Configuración Detekt — Análisis estático para Aprovecha!
+# Equivalente funcional de: Radon (complejidad) + Linter (estilo) en Python
+#
+# Referencia IEEE 730 SQA: Sección 4.3 — Herramientas de análisis estático
+# Umbral de complejidad ciclomática: ≤ 10 (estándar McCabe)
+# ─────────────────────────────────────────────────────────────────────────────
+
+build:
+  maxIssues: 0          # El pipeline falla con cualquier issue crítico
+  excludeCorrectable: false
+
+config:
+  validation: true
+  warningsAsErrors: false
+  checkExhaustiveness: false
+
+processors:
+  active: true
+  exclude:
+    - 'DetektProgressListener'
+
+console-reports:
+  active: true
+  exclude:
+    - 'ProjectStatisticsReport'
+    - 'NotificationReport'
+
+output-reports:
+  active: true
+  exclude: []
+
+# ─── COMPLEJIDAD (equivalente a Radon en Python) ──────────────────────────────
+complexity:
+  active: true
+
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 10           # Radon equivalente: nota 'B' → max 10
+    ignoreSingleWhenExpression: false
+    ignoreSimpleWhenEntries: false
+    ignoreNestingFunctions: false
+
+  CognitiveComplexity:
+    active: true
+    threshold: 15           # Complejidad cognitiva máxima permitida
+
+  LongMethod:
+    active: true
+    threshold: 60           # Máximo 60 líneas por función
+
+  LongParameterList:
+    active: true
+    functionThreshold: 5    # Máximo 5 parámetros por función
+    constructorThreshold: 7
+    ignoreDefaultParameters: true
+    ignoreDataClasses: true
+    ignoreAnnotated: []
+
+  TooManyFunctions:
+    active: true
+    thresholdInFiles: 20
+    thresholdInClasses: 15
+    thresholdInInterfaces: 10
+    thresholdInObjects: 15
+    thresholdInEnums: 7
+    ignoreDeprecated: false
+    ignorePrivate: false
+    ignoreOverridden: false
+
+  ComplexInterface:
+    active: true
+    threshold: 10
+    includeStaticDeclarations: false
+    includePrivateDeclarations: false
+
+  NestedBlockDepth:
+    active: true
+    threshold: 4            # Máximo 4 niveles de anidamiento
+
+  StringLiteralDuplication:
+    active: true
+    threshold: 3
+    ignoreAnnotation: true
+    excludeStringsWithLessThan5Characters: true
+    ignoreStringsRegex: '$^'
+
+# ─── ESTILO (equivalente a ktlint/linter) ────────────────────────────────────
+style:
+  active: true
+
+  MagicNumber:
+    active: true
+    ignoreNumbers: ['-1', '0', '1', '2']
+    ignoreHashCodeFunction: true
+    ignorePropertyDeclaration: false
+    ignoreLocalVariableDeclaration: false
+    ignoreConstantDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotation: false
+    ignoreNamedArgument: true
+    ignoreEnums: false
+    ignoreRanges: false
+    ignoreExtensionFunctions: true
+
+  UnusedPrivateMember:
+    active: true
+    allowedNames: ''
+
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeCommentStatements: false
+    excludeRawStrings: true
+
+  ForbiddenComment:
+    active: true
+    comments:
+      - reason: 'No dejar TODO sin ticket asociado. Usar TODO(REQ-FXX) o crear issue.'
+        value: 'TODO:'
+      - reason: 'Código muerto detectado. Eliminar o documentar.'
+        value: 'FIXME:'
+    allowedPatterns: ''
+
+  WildcardImport:
+    active: true
+    excludeImports: []
+
+  ReturnCount:
+    active: true
+    max: 3
+    excludedFunctions: ['equals']
+    excludeLabeled: false
+    excludeReturnFromLambda: true
+    excludeGuardClauses: true
+
+  UseCheckOrError:
+    active: true
+
+  UseRequire:
+    active: true
+
+  DataClassContainsFunctions:
+    active: false   # Data classes pueden tener funciones derivadas (ej: descuentoPorcentaje)
+
+  ExplicitItLambdaParameter:
+    active: true
+
+# ─── NAMING ──────────────────────────────────────────────────────────────────
+naming:
+  active: true
+
+  ClassNaming:
+    active: true
+    classPattern: '[A-Z][a-zA-Z0-9]*'
+
+  FunctionNaming:
+    active: true
+    functionPattern: '[a-z][a-zA-Z0-9]*'
+    excludeClassPattern: '$^'
+    ignoreAnnotated: ['Composable']   # Composables pueden tener mayúscula inicial
+
+  VariableNaming:
+    active: true
+    variablePattern: '[a-z][A-Za-z0-9]*'
+    privateVariablePattern: '_?[a-z][A-Za-z0-9]*'
+    excludeClassPattern: '$^'
+
+  ConstantNaming:
+    active: true
+    constantPattern: '[A-Z][_A-Z0-9]*'
+    privateConstantPattern: '[A-Z][_A-Z0-9]*'
+
+  PackageNaming:
+    active: true
+    packagePattern: '[a-z]+(\.[a-z][A-Za-z0-9]*)*'
+
+# ─── BUGS POTENCIALES ─────────────────────────────────────────────────────────
+potential-bugs:
+  active: true
+
+  EqualsAlwaysReturnsTrueOrFalse:
+    active: true
+
+  ExplicitGarbageCollectionCall:
+    active: true
+
+  HasPlatformType:
+    active: true
+
+  IgnoredReturnValue:
+    active: true
+
+  ImplicitDefaultLocale:
+    active: true
+
+  InvalidRange:
+    active: true
+
+  IteratorNotThrowingNoSuchElementException:
+    active: true
+
+  NullCheckOnMutableProperty:
+    active: true
+
+  UnreachableCode:
+    active: true
+
+  UnsafeCallOnNullableType:
+    active: true
+    excludes: ['**/test/**', '**/androidTest/**']
+
+# ─── COROUTINES ───────────────────────────────────────────────────────────────
+coroutines:
+  active: true
+
+  GlobalCoroutineUsage:
+    active: true      # Prohibir GlobalScope — usar viewModelScope o lifecycleScope
+
+  RedundantSuspendModifier:
+    active: true
+
+  SleepInsteadOfDelay:
+    active: true
+
+  SuspendFunWithFlowReturnType:
+    active: true
+
+# ─── EXCLUSIONES GLOBALES ─────────────────────────────────────────────────────
+# Excluir archivos generados y tests de las reglas más estrictas
+exclude:
+  patterns:
+    - '**/build/**'
+    - '**/*.generated.kt'
+    - '**/ExampleUnitTest.kt'
+    - '**/ExampleInstrumentedTest.kt'
