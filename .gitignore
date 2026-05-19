@@ -1,15 +1,55 @@
+# Gradle files
+.gradle/
+build/
+*.apk
+*.ap_
+*.aab
+
+# Android Studio
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
 .externalNativeBuild
-.cxx
+.cxx/
 local.properties
+
+# Android NDK
+obj/
+
+# Misc
+*.DS_Store
+*.swp
+*.swo
+*~
+
+# Output files
+/captures
+/app/release
+/app/debug
+
+# Kotlin
+*.kt.class
+
+# Test coverage
+/coverage/
+
+# IDE
+.classpath
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Local development properties
+gradle.properties
+local.properties
+
+# Gradle daemon
+gradle/gradle-daemon-jvm.properties
+
+# IDE caches
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml

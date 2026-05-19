@@ -24,4 +24,9 @@ dependencyResolutionManagement {
 
 rootProject.name = "Aprovecha!"
 include(":app")
+include(":core:common")
+include(":core:data")
+include(":core:domain")
+include(":core:ui")
+include(":feature:products")
  
