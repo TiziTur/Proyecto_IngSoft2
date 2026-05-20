@@ -4,8 +4,11 @@
 // Cobertura mínima: 70% de instrucciones (equivalente a pytest --cov en Python)
 // ─────────────────────────────────────────────────────────────────────────────
 
+val hasAndroid = plugins.hasPlugin("com.android.library") || plugins.hasPlugin("com.android.application")
+val unitTestTaskName = if (hasAndroid) "testDebugUnitTest" else "test"
+
 tasks.register<JacocoReport>("jacocoTestReport") {
-    dependsOn("testDebugUnitTest")
+    dependsOn(unitTestTaskName)
     group = "Reporting"
     description = "Genera reporte HTML de cobertura de código con JaCoCo"
 
@@ -34,17 +37,24 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "**/*Database_Impl*"
     )
 
-    val debugTree = fileTree("${project.buildDir}/intermediates/javac/debug/classes") {
+    val debugTree = fileTree("${layout.buildDirectory.get()}/intermediates/javac/debug/classes") {
         exclude(fileFilter)
     }
-    val kotlinDebugTree = fileTree("${project.buildDir}/tmp/kotlin-classes/debug") {
+    val kotlinDebugTree = fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+    val jvmTree = fileTree("${layout.buildDirectory.get()}/classes/kotlin/main") {
         exclude(fileFilter)
     }
 
     sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
-    classDirectories.setFrom(files(debugTree, kotlinDebugTree))
-    executionData.setFrom(fileTree(project.buildDir) {
-        include("jacoco/testDebugUnitTest.exec", "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+    classDirectories.setFrom(files(debugTree, kotlinDebugTree, jvmTree))
+    executionData.setFrom(fileTree(layout.buildDirectory.get()) {
+        include(
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
+            "jacoco/test.exec"
+        )
     })
 }
 

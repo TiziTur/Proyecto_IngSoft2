@@ -1,19 +1,45 @@
+@file:Suppress("MagicNumber")
+
 package com.aprovecha.app.feature.auth.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,12 +48,39 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aprovecha.app.domain.model.UserRole
 
 // @REQ-F01: Pantalla de registro con selección de rol COMMERCE / CONSUMER
+
+private object RegisterScreenTokens {
+    val AppBarColor = Color(0xFF2E7D32)
+    val TitleColor = Color(0xFF212121)
+    val ConsumerColor = Color(0xFF2E7D32)
+    val CommerceColor = Color(0xFFE65100)
+    val UnselectedBorder = Color(0xFFE0E0E0)
+    val UnselectedIcon = Color(0xFF9E9E9E)
+    val SecondaryText = Color(0xFF757575)
+
+    val ContentPadding = 24.dp
+    val VerticalSpacing = 16.dp
+    val RoleSpacing = 12.dp
+    val FieldCorner = 12.dp
+    val ButtonHeight = 52.dp
+    val ButtonCorner = 26.dp
+    val RoleCardCorner = 16.dp
+    val RoleCardBorder = 2.dp
+    val RoleCardInnerPadding = 16.dp
+    val RoleCardIconSize = 36.dp
+    val LoadingSize = 20.dp
+    const val RoleCardAlpha = 0.08f
+    const val RoleTitleSizeSp = 14
+    const val RoleSubtitleSizeSp = 11
+    const val ButtonTextSizeSp = 16
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,156 +113,205 @@ fun RegisterScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF2E7D32),
+                    containerColor = RegisterScreenTokens.AppBarColor,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
             )
         }
     ) { paddingValues ->
-        Column(
+        RegisterForm(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(paddingValues),
+            uiState = uiState,
+            name = name,
+            onNameChange = { name = it },
+            email = email,
+            onEmailChange = { email = it },
+            password = password,
+            onPasswordChange = { password = it },
+            selectedRole = selectedRole,
+            onRoleSelected = { selectedRole = it },
+            onRegisterClick = {
+                if (selectedRole != null) {
+                    viewModel.register(email, password, name, selectedRole!!)
+                }
+            }
+        )
+    }
+}
+
+@Composable
+@Suppress("LongMethod", "LongParameterList")
+private fun RegisterForm(
+    modifier: Modifier,
+    uiState: AuthUiState,
+    name: String,
+    onNameChange: (String) -> Unit,
+    email: String,
+    onEmailChange: (String) -> Unit,
+    password: String,
+    onPasswordChange: (String) -> Unit,
+    selectedRole: UserRole?,
+    onRoleSelected: (UserRole) -> Unit,
+    onRegisterClick: () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .padding(RegisterScreenTokens.ContentPadding)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(RegisterScreenTokens.VerticalSpacing)
+    ) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChange,
+            label = { Text("Nombre completo / Nombre del local") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            shape = RoundedCornerShape(RegisterScreenTokens.FieldCorner)
+        )
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = onEmailChange,
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            singleLine = true,
+            shape = RoundedCornerShape(RegisterScreenTokens.FieldCorner)
+        )
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = onPasswordChange,
+            label = { Text("Contraseña (mín. 6 caracteres)") },
+            modifier = Modifier.fillMaxWidth(),
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            singleLine = true,
+            shape = RoundedCornerShape(RegisterScreenTokens.FieldCorner)
+        )
+
+        Text(
+            text = "¿Cómo vas a usar Aprovecha!?",
+            style = MaterialTheme.typography.titleMedium,
+            color = RegisterScreenTokens.TitleColor
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(RegisterScreenTokens.RoleSpacing)
         ) {
-            // Nombre
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre completo / Nombre del local") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            // Email
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            // Contraseña
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Contraseña (mín. 6 caracteres)") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
-            )
-
-            // Selección de rol
-            Text(
-                text = "¿Cómo vas a usar Aprovecha!?",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color(0xFF212121)
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                RoleCard(
+            RoleCard(
+                option = RoleOption(
                     icon = Icons.Default.Person,
                     title = "Consumidor",
                     subtitle = "Compro packs con descuento",
-                    selected = selectedRole == UserRole.CONSUMER,
-                    selectedColor = Color(0xFF2E7D32),
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedRole = UserRole.CONSUMER }
-                )
-                RoleCard(
+                    selectedColor = RegisterScreenTokens.ConsumerColor,
+                    onClick = { onRoleSelected(UserRole.CONSUMER) }
+                ),
+                selected = selectedRole == UserRole.CONSUMER,
+                modifier = Modifier.weight(1f)
+            )
+            RoleCard(
+                option = RoleOption(
                     icon = Icons.Default.Storefront,
                     title = "Comercio",
                     subtitle = "Publico mis excedentes",
-                    selected = selectedRole == UserRole.COMMERCE,
-                    selectedColor = Color(0xFFE65100),
-                    modifier = Modifier.weight(1f),
-                    onClick = { selectedRole = UserRole.COMMERCE }
-                )
-            }
+                    selectedColor = RegisterScreenTokens.CommerceColor,
+                    onClick = { onRoleSelected(UserRole.COMMERCE) }
+                ),
+                selected = selectedRole == UserRole.COMMERCE,
+                modifier = Modifier.weight(1f)
+            )
+        }
 
-            // Error
-            if (uiState is AuthUiState.Error) {
+        if (uiState is AuthUiState.Error) {
+            Text(
+                text = uiState.message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Button(
+            onClick = onRegisterClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(RegisterScreenTokens.ButtonHeight),
+            shape = RoundedCornerShape(RegisterScreenTokens.ButtonCorner),
+            enabled = uiState !is AuthUiState.Loading && selectedRole != null,
+            colors = ButtonDefaults.buttonColors(containerColor = RegisterScreenTokens.ConsumerColor)
+        ) {
+            if (uiState is AuthUiState.Loading) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    modifier = Modifier.size(RegisterScreenTokens.LoadingSize)
+                )
+            } else {
                 Text(
-                    text = (uiState as AuthUiState.Error).message,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = "Registrarme",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = RegisterScreenTokens.ButtonTextSizeSp.sp
                 )
-            }
-
-            // Botón registrar
-            Button(
-                onClick = {
-                    if (selectedRole == null) return@Button
-                    viewModel.register(email, password, name, selectedRole!!)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                enabled = uiState !is AuthUiState.Loading && selectedRole != null,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
-            ) {
-                if (uiState is AuthUiState.Loading) {
-                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
-                } else {
-                    Text("Registrarme", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                }
             }
         }
     }
 }
 
+private data class RoleOption(
+    val icon: ImageVector,
+    val title: String,
+    val subtitle: String,
+    val selectedColor: Color,
+    val onClick: () -> Unit
+)
+
 @Composable
 private fun RoleCard(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
+    option: RoleOption,
     selected: Boolean,
-    selectedColor: Color,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier
 ) {
-    val borderColor = if (selected) selectedColor else Color(0xFFE0E0E0)
-    val bgColor = if (selected) selectedColor.copy(alpha = 0.08f) else Color.White
+    val borderColor = if (selected) option.selectedColor else RegisterScreenTokens.UnselectedBorder
+    val backgroundColor = if (selected) {
+        option.selectedColor.copy(alpha = RegisterScreenTokens.RoleCardAlpha)
+    } else {
+        Color.White
+    }
 
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .border(2.dp, borderColor, RoundedCornerShape(16.dp))
-            .background(bgColor)
-            .clickable(onClick = onClick)
-            .padding(16.dp),
+            .clip(RoundedCornerShape(RegisterScreenTokens.RoleCardCorner))
+            .border(
+                RegisterScreenTokens.RoleCardBorder,
+                borderColor,
+                RoundedCornerShape(RegisterScreenTokens.RoleCardCorner)
+            )
+            .background(backgroundColor)
+            .clickable(onClick = option.onClick)
+            .padding(RegisterScreenTokens.RoleCardInnerPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Icon(
-            imageVector = icon,
+            imageVector = option.icon,
             contentDescription = null,
-            tint = if (selected) selectedColor else Color(0xFF9E9E9E),
-            modifier = Modifier.size(36.dp)
+            tint = if (selected) option.selectedColor else RegisterScreenTokens.UnselectedIcon,
+            modifier = Modifier.size(RegisterScreenTokens.RoleCardIconSize)
         )
         Text(
-            text = title,
+            text = option.title,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-            color = if (selected) selectedColor else Color(0xFF212121)
+            fontSize = RegisterScreenTokens.RoleTitleSizeSp.sp,
+            color = if (selected) option.selectedColor else RegisterScreenTokens.TitleColor
         )
         Text(
-            text = subtitle,
-            fontSize = 11.sp,
-            color = Color(0xFF757575),
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            text = option.subtitle,
+            fontSize = RegisterScreenTokens.RoleSubtitleSizeSp.sp,
+            color = RegisterScreenTokens.SecondaryText,
+            textAlign = TextAlign.Center
         )
     }
+}

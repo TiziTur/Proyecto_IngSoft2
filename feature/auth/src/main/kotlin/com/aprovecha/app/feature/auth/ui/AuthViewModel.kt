@@ -26,6 +26,10 @@ class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
+    private companion object {
+        const val MIN_PASSWORD_LENGTH = 6
+    }
+
     private val _uiState = MutableStateFlow<AuthUiState>(AuthUiState.Idle)
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
@@ -51,7 +55,7 @@ class AuthViewModel @Inject constructor(
             _uiState.value = AuthUiState.Error("Completá todos los campos")
             return
         }
-        if (password.length < 6) {
+        if (password.length < MIN_PASSWORD_LENGTH) {
             _uiState.value = AuthUiState.Error("La contraseña debe tener al menos 6 caracteres")
             return
         }

@@ -36,6 +36,13 @@ class ProductsViewModel @Inject constructor(
     private val reservationRepository: ReservationRepository
 ) : ViewModel() {
 
+    private companion object {
+        const val DEFAULT_LATITUDE = -31.4
+        const val DEFAULT_LONGITUDE = -64.18
+        const val DEFAULT_RADIUS_KM = 5.0
+        const val DEFAULT_USER_ID = 1L
+    }
+
     private val _packsState = MutableStateFlow<PacksUiState>(PacksUiState.Loading)
     val packsState: StateFlow<PacksUiState> = _packsState.asStateFlow()
 
@@ -50,7 +57,11 @@ class ProductsViewModel @Inject constructor(
     }
 
     // @REQ-F03: Cargar packs cercanos (MVP: radio default 5km)
-    fun loadNearbyPacks(lat: Double = -31.4, lng: Double = -64.18, radioKm: Double = 5.0) {
+    fun loadNearbyPacks(
+        lat: Double = DEFAULT_LATITUDE,
+        lng: Double = DEFAULT_LONGITUDE,
+        radioKm: Double = DEFAULT_RADIUS_KM
+    ) {
         viewModelScope.launch {
             packRepository.getAvailablePacksNearby(lat, lng, radioKm)
                 .catch { _packsState.value = PacksUiState.Error(it.message ?: "Error") }
@@ -69,7 +80,7 @@ class ProductsViewModel @Inject constructor(
     }
 
     // @REQ-F04: Reservar pack (userId hardcodeado = 1 para MVP)
-    fun reservePack(packId: Long, userId: Long = 1L) {
+    fun reservePack(packId: Long, userId: Long = DEFAULT_USER_ID) {
         viewModelScope.launch {
             _reserveState.value = ReserveUiState.Loading
             _reserveState.value = when (val result = reservationRepository.createReservation(packId, userId)) {

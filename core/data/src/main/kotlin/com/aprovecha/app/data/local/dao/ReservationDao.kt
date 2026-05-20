@@ -23,11 +23,17 @@ interface ReservationDao {
     suspend fun insertReservation(reservation: ReservationEntity): Long
 
     // @REQ-F05: Marcar reserva como WITHDRAWN (retirada)
-    @Query("UPDATE reservations SET status = 'WITHDRAWN', fechaActualizacion = :timestamp WHERE id = :reservationId AND status = 'RESERVED'")
+    @Query(
+        "UPDATE reservations SET status = 'WITHDRAWN', fechaActualizacion = :timestamp " +
+            "WHERE id = :reservationId AND status = 'RESERVED'"
+    )
     suspend fun markAsWithdrawn(reservationId: Long, timestamp: String): Int
 
     // @REQ-F06: Cancelar reserva (libre hasta antes de WITHDRAWN)
-    @Query("UPDATE reservations SET status = 'CANCELLED', fechaActualizacion = :timestamp WHERE id = :reservationId AND status = 'RESERVED'")
+    @Query(
+        "UPDATE reservations SET status = 'CANCELLED', fechaActualizacion = :timestamp " +
+            "WHERE id = :reservationId AND status = 'RESERVED'"
+    )
     suspend fun cancelReservation(reservationId: Long, timestamp: String): Int
 
     // Obtener reservas de un usuario consumidor
@@ -52,5 +58,3 @@ interface ReservationDao {
     @Query("SELECT * FROM reservations WHERE packId = :packId ORDER BY fechaReserva DESC")
     fun getReservationsByPack(packId: Long): Flow<List<ReservationEntity>>
 }
-
-// Esta linea no se inserta aqui - hay que editar el archivo

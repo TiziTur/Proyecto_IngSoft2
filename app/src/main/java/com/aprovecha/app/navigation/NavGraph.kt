@@ -35,34 +35,14 @@ fun AprovechaNavGraph(navController: NavHostController) {
         // ── Auth ───────────────────────────────────────────────────────────────
         composable(Routes.LOGIN) {
             LoginScreen(
-                onLoginSuccess = { role ->
-                    if (role == "CONSUMER") {
-                        navController.navigate(Routes.HOME_CONSUMER) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(Routes.HOME_COMMERCE) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    }
-                },
+                onLoginSuccess = { role -> navController.navigateToHomeByRole(role) },
                 onGoToRegister = { navController.navigate(Routes.REGISTER) }
             )
         }
 
         composable(Routes.REGISTER) {
             RegisterScreen(
-                onRegisterSuccess = { role ->
-                    if (role == "CONSUMER") {
-                        navController.navigate(Routes.HOME_CONSUMER) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(Routes.HOME_COMMERCE) {
-                            popUpTo(Routes.LOGIN) { inclusive = true }
-                        }
-                    }
-                },
+                onRegisterSuccess = { role -> navController.navigateToHomeByRole(role) },
                 onGoToLogin = { navController.popBackStack() }
             )
         }
@@ -106,5 +86,12 @@ fun AprovechaNavGraph(navController: NavHostController) {
                 onPublishSuccess = { navController.popBackStack() }
             )
         }
+    }
+}
+
+private fun NavHostController.navigateToHomeByRole(role: String) {
+    val targetRoute = if (role == "CONSUMER") Routes.HOME_CONSUMER else Routes.HOME_COMMERCE
+    navigate(targetRoute) {
+        popUpTo(Routes.LOGIN) { inclusive = true }
     }
 }

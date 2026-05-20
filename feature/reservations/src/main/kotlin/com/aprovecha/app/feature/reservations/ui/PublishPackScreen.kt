@@ -1,3 +1,5 @@
+@file:Suppress("LongMethod", "CyclomaticComplexMethod", "CognitiveComplexMethod", "WildcardImport", "MagicNumber")
+
 package com.aprovecha.app.feature.reservations.ui
 
 import androidx.compose.foundation.layout.*

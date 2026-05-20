@@ -17,18 +17,18 @@ config:
 
 processors:
   active: true
-  exclude:
+  excludes:
     - 'DetektProgressListener'
 
 console-reports:
   active: true
-  exclude:
+  excludes:
     - 'ProjectStatisticsReport'
     - 'NotificationReport'
 
 output-reports:
   active: true
-  exclude: []
+  excludes: []
 
 # ─── COMPLEJIDAD (equivalente a Radon en Python) ──────────────────────────────
 complexity:
@@ -36,14 +36,14 @@ complexity:
 
   CyclomaticComplexMethod:
     active: true
-    threshold: 10           # Radon equivalente: nota 'B' → max 10
+    threshold: 10           # Radon equivalente
     ignoreSingleWhenExpression: false
     ignoreSimpleWhenEntries: false
     ignoreNestingFunctions: false
 
-  CognitiveComplexity:
+  CognitiveComplexMethod:
     active: true
-    threshold: 15           # Complejidad cognitiva máxima permitida
+    threshold: 15           # Umbral según sección 4.2 del Plan SQA
 
   LongMethod:
     active: true
@@ -84,6 +84,7 @@ complexity:
     ignoreAnnotation: true
     excludeStringsWithLessThan5Characters: true
     ignoreStringsRegex: '$^'
+    excludes: ['**/test/**', '**/androidTest/**']
 
 # ─── ESTILO (equivalente a ktlint/linter) ────────────────────────────────────
 style:
@@ -102,6 +103,7 @@ style:
     ignoreEnums: false
     ignoreRanges: false
     ignoreExtensionFunctions: true
+    excludes: ['**/test/**', '**/androidTest/**']
 
   UnusedPrivateMember:
     active: true
@@ -126,7 +128,7 @@ style:
 
   WildcardImport:
     active: true
-    excludeImports: []
+    excludeImports: ['java.util.*', 'kotlinx.android.synthetic.*', 'org.junit.Assert.*']
 
   ReturnCount:
     active: true
@@ -158,9 +160,9 @@ naming:
 
   FunctionNaming:
     active: true
-    functionPattern: '[a-z][a-zA-Z0-9]*'
+    functionPattern: '[a-z][a-zA-Z0-9_]*'
     excludeClassPattern: '$^'
-    ignoreAnnotated: ['Composable']   # Composables pueden tener mayúscula inicial
+    ignoreAnnotated: ['Composable', 'Test']   # Tests usan BDD Given/When/Then
 
   VariableNaming:
     active: true
@@ -168,10 +170,10 @@ naming:
     privateVariablePattern: '_?[a-z][A-Za-z0-9]*'
     excludeClassPattern: '$^'
 
-  ConstantNaming:
+  TopLevelPropertyNaming:
     active: true
-    constantPattern: '[A-Z][_A-Z0-9]*'
-    privateConstantPattern: '[A-Z][_A-Z0-9]*'
+  ObjectPropertyNaming:
+    active: true
 
   PackageNaming:
     active: true
@@ -227,12 +229,3 @@ coroutines:
 
   SuspendFunWithFlowReturnType:
     active: true
-
-# ─── EXCLUSIONES GLOBALES ─────────────────────────────────────────────────────
-# Excluir archivos generados y tests de las reglas más estrictas
-exclude:
-  patterns:
-    - '**/build/**'
-    - '**/*.generated.kt'
-    - '**/ExampleUnitTest.kt'
-    - '**/ExampleInstrumentedTest.kt'

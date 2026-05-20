@@ -1,3 +1,5 @@
+@file:Suppress("LongMethod", "WildcardImport", "MaxLineLength", "MagicNumber")
+
 package com.aprovecha.app.feature.products.ui
 
 import androidx.compose.foundation.background

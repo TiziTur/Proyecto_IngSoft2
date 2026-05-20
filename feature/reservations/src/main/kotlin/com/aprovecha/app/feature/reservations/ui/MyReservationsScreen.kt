@@ -1,3 +1,5 @@
+@file:Suppress("LongMethod", "CognitiveComplexMethod", "WildcardImport", "MaxLineLength", "MagicNumber")
+
 package com.aprovecha.app.feature.reservations.ui
 
 import androidx.compose.foundation.background

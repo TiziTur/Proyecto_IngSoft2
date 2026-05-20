@@ -55,7 +55,9 @@ class RegisterUserUseCaseTest {
         // Then
         assertTrue(result is Result.Success)
         assertEquals(expectedUser, (result as Result.Success).data)
-        coVerify(exactly = 1) { authRepository.register("comercio@test.com", "password123", "Panadería Test", UserRole.COMMERCE) }
+        coVerify(exactly = 1) {
+            authRepository.register("comercio@test.com", "password123", "Panadería Test", UserRole.COMMERCE)
+        }
     }
 
     /**

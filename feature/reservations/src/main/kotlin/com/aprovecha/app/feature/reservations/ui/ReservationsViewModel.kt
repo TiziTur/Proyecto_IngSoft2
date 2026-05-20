@@ -44,6 +44,13 @@ class ReservationsViewModel @Inject constructor(
     private val publishPackUseCase: PublishPackUseCase
 ) : ViewModel() {
 
+    private companion object {
+        const val DEFAULT_USER_ID = 1L
+        const val DEFAULT_COMMERCE_ID = 1L
+        const val GENERIC_ERROR_MESSAGE = "Error"
+        const val UNEXPECTED_ERROR_MESSAGE = "Error inesperado"
+    }
+
     private val _reservationsState = MutableStateFlow<ReservationsUiState>(ReservationsUiState.Loading)
     val reservationsState: StateFlow<ReservationsUiState> = _reservationsState.asStateFlow()
 
@@ -54,19 +61,23 @@ class ReservationsViewModel @Inject constructor(
     val actionState: StateFlow<ActionState> = _actionState.asStateFlow()
 
     // @REQ-F06: Cargar reservas del usuario (userId hardcodeado = 1 para MVP)
-    fun loadUserReservations(userId: Long = 1L) {
+    fun loadUserReservations(userId: Long = DEFAULT_USER_ID) {
         viewModelScope.launch {
             reservationRepository.getReservationsByUser(userId)
-                .catch { _reservationsState.value = ReservationsUiState.Error(it.message ?: "Error") }
+                .catch {
+                    _reservationsState.value = ReservationsUiState.Error(it.message ?: GENERIC_ERROR_MESSAGE)
+                }
                 .collect { list -> _reservationsState.value = ReservationsUiState.Success(list) }
         }
     }
 
     // Cargar packs del comercio (commerceId hardcodeado = 1 para MVP)
-    fun loadCommercePacks(commerceId: Long = 1L) {
+    fun loadCommercePacks(commerceId: Long = DEFAULT_COMMERCE_ID) {
         viewModelScope.launch {
             packRepository.getPacksByCommerce(commerceId)
-                .catch { _commercePacksState.value = CommercePacksState.Error(it.message ?: "Error") }
+                .catch {
+                    _commercePacksState.value = CommercePacksState.Error(it.message ?: GENERIC_ERROR_MESSAGE)
+                }
                 .collect { list -> _commercePacksState.value = CommercePacksState.Success(list) }
         }
     }
@@ -78,7 +89,7 @@ class ReservationsViewModel @Inject constructor(
             _actionState.value = when (val r = reservationRepository.cancelReservation(reservationId)) {
                 is Result.Success -> ActionState.Success
                 is Result.Error -> ActionState.Error(r.exception.message ?: "Error al cancelar")
-                else -> ActionState.Error("Error inesperado")
+                else -> ActionState.Error(UNEXPECTED_ERROR_MESSAGE)
             }
         }
     }
@@ -89,8 +100,8 @@ class ReservationsViewModel @Inject constructor(
             _actionState.value = ActionState.Loading
             _actionState.value = when (val r = reservationRepository.markAsWithdrawn(reservationId)) {
                 is Result.Success -> ActionState.Success
-                is Result.Error -> ActionState.Error(r.exception.message ?: "Error")
-                else -> ActionState.Error("Error inesperado")
+                is Result.Error -> ActionState.Error(r.exception.message ?: GENERIC_ERROR_MESSAGE)
+                else -> ActionState.Error(UNEXPECTED_ERROR_MESSAGE)
             }
         }
     }
@@ -102,7 +113,7 @@ class ReservationsViewModel @Inject constructor(
             _actionState.value = when (val r = publishPackUseCase(pack)) {
                 is Result.Success -> ActionState.Success
                 is Result.Error -> ActionState.Error(r.exception.message ?: "Error al publicar")
-                else -> ActionState.Error("Error inesperado")
+                else -> ActionState.Error(UNEXPECTED_ERROR_MESSAGE)
             }
         }
     }

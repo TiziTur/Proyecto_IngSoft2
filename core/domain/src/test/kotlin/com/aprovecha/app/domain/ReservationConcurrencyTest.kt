@@ -94,7 +94,13 @@ class ReservationConcurrencyTest {
     fun givenAvailablePack_whenReserved_thenReservationHasCorrectStatus() = runTest {
         // Given
         coEvery { reservationRepository.createReservation(1L, 1L) } returns Result.Success(
-            Reservation(id = 1L, packId = 1L, userId = 1L, status = ReservationStatus.RESERVED, fechaReserva = LocalDateTime.now())
+            Reservation(
+                id = 1L,
+                packId = 1L,
+                userId = 1L,
+                status = ReservationStatus.RESERVED,
+                fechaReserva = LocalDateTime.now()
+            )
         )
 
         // When

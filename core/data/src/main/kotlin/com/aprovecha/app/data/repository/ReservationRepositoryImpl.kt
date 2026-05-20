@@ -22,6 +22,10 @@ class ReservationRepositoryImpl @Inject constructor(
     private val packDao: PackDao
 ) : ReservationRepository {
 
+    private companion object {
+        const val RESERVATION_NOT_FOUND_MESSAGE = "Reserva no encontrada"
+    }
+
     // @REQ-F04 + @REQ-NF01
     override suspend fun createReservation(packId: Long, userId: Long): Result<Reservation> = try {
         val now = LocalDateTime.now().toString()
@@ -47,7 +51,7 @@ class ReservationRepositoryImpl @Inject constructor(
     override suspend fun markAsWithdrawn(reservationId: Long): Result<Reservation> {
         return try {
             val entity = reservationDao.getReservationById(reservationId)
-                ?: return Result.Error(NoSuchElementException("Reserva no encontrada"))
+                ?: return Result.Error(NoSuchElementException(RESERVATION_NOT_FOUND_MESSAGE))
             if (entity.status != ReservationStatus.RESERVED.name) {
                 return Result.Error(IllegalStateException("Solo se pueden retirar reservas RESERVED"))
             }
@@ -63,7 +67,7 @@ class ReservationRepositoryImpl @Inject constructor(
     override suspend fun cancelReservation(reservationId: Long): Result<Reservation> {
         return try {
             val entity = reservationDao.getReservationById(reservationId)
-                ?: return Result.Error(NoSuchElementException("Reserva no encontrada"))
+                ?: return Result.Error(NoSuchElementException(RESERVATION_NOT_FOUND_MESSAGE))
             if (entity.status == ReservationStatus.WITHDRAWN.name) {
                 return Result.Error(IllegalStateException("No se puede cancelar una reserva ya retirada"))
             }
@@ -84,7 +88,7 @@ class ReservationRepositoryImpl @Inject constructor(
     override suspend fun getReservationById(reservationId: Long): Result<Reservation> = try {
         val entity = reservationDao.getReservationById(reservationId)
         if (entity != null) Result.Success(entity.toDomain())
-        else Result.Error(NoSuchElementException("Reserva no encontrada"))
+        else Result.Error(NoSuchElementException(RESERVATION_NOT_FOUND_MESSAGE))
     } catch (e: Exception) {
         Result.Error(e)
     }

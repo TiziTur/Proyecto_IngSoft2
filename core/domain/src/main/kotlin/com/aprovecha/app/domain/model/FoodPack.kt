@@ -21,9 +21,13 @@ data class FoodPack(
     val status: PackStatus = PackStatus.AVAILABLE,
     val expirationTime: LocalDateTime = LocalDateTime.now()
 ) {
+    private companion object {
+        const val PERCENT_SCALE = 100
+    }
+
     // @REQ-F02: Validacion: precio descuento < precio original
     val discountPercentage: Int
         get() = if (originalPrice > 0) {
-            ((1 - discountPrice / originalPrice) * 100).toInt()
+            ((1 - discountPrice / originalPrice) * PERCENT_SCALE).toInt()
         } else 0
 }
