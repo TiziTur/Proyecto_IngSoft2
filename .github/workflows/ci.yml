@@ -4,8 +4,12 @@
 # Referencia IEEE 730 SQA: Sección 5 — Plan de Verificación y Validación
 #
 # Jobs:
-#   1. lint    → Detekt (complejidad) + ktlint (estilo)
-#   2. test    → JUnit5 + JaCoCo (cobertura mínima 70%)
+#   1. lint    → Detekt (complejidad ciclomática + estilo, config en detekt.yml)
+#   2. test    → JUnit4 + MockK + JaCoCo (cobertura mínima 70%)
+#
+# Nota: El estilo de código (indentación, imports, etc.) se verifica
+#       mediante las reglas de Detekt configuradas en config/detekt/detekt.yml.
+#       El archivo .editorconfig define las convenciones para el IDE.
 #
 # Triggers:
 #   - Push a main
@@ -34,7 +38,7 @@ env:
 jobs:
   # ─── JOB 1: ANÁLISIS ESTÁTICO ──────────────────────────────────────────────
   lint:
-    name: "🔍 Lint — Detekt + ktlint"
+    name: "🔍 Lint — Detekt"
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -64,12 +68,12 @@ jobs:
       - name: Dar permisos a gradlew
         run: chmod +x ./gradlew
 
-      - name: "Detekt — Análisis estático (equivalente Radon + Linter)"
+      - name: "Detekt — Análisis estático (complejidad ciclomática ≤10, maxIssues=0)"
         run: ./gradlew detekt --stacktrace
-        # Falla el pipeline si hay issues críticos (maxIssues: 0 en detekt.yml)
+        # Falla el pipeline si hay issues críticos (maxIssues: 0 en config/detekt/detekt.yml)
 
       - name: Subir reporte Detekt como artifact
-        if: always()   # Subir aunque falle para poder revisar
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: detekt-report
@@ -78,7 +82,7 @@ jobs:
 
   # ─── JOB 2: TESTS UNITARIOS + COBERTURA ────────────────────────────────────
   test:
-    name: "✅ Unit Tests — JUnit5 + JaCoCo (≥70%)"
+    name: "✅ Unit Tests — JUnit4 + MockK + JaCoCo (≥70%)"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: lint   # Solo corre si lint pasa
@@ -107,7 +111,7 @@ jobs:
       - name: Dar permisos a gradlew
         run: chmod +x ./gradlew
 
-      - name: Ejecutar tests unitarios
+      - name: Ejecutar tests unitarios (JUnit4 + MockK)
         run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Generar reporte JaCoCo
