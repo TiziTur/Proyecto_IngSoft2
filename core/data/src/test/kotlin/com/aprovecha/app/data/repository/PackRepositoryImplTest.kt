@@ -215,4 +215,36 @@ class PackRepositoryImplTest {
         assertEquals(2, result.size)
         assertTrue(result.all { it.commerceId == 1L })
     }
+
+    // ── updatePack ────────────────────────────────────────────────────────────
+
+    /**
+     * Given: pack válido para actualizar
+     * When: updatePack llamado
+     * Then: Result.Success con el pack actualizado
+     */
+    @Test
+    fun `Given valid pack When updatePack called Then returns Success`() = runTest {
+        val pack = buildFoodPack(id = 1L)
+        coEvery { packDao.updatePack(any()) } returns Unit
+
+        val result = repository.updatePack(pack)
+
+        assertTrue(result is Result.Success)
+        assertEquals(pack, (result as Result.Success).data)
+    }
+
+    /**
+     * Given: DAO lanza excepción en updatePack
+     * When: updatePack llamado
+     * Then: Result.Error
+     */
+    @Test
+    fun `Given DAO throws When updatePack called Then returns Result Error`() = runTest {
+        coEvery { packDao.updatePack(any()) } throws RuntimeException("Update failed")
+
+        val result = repository.updatePack(buildFoodPack(id = 1L))
+
+        assertTrue(result is Result.Error)
+    }
 }

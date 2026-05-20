@@ -252,4 +252,46 @@ class ReservationsViewModelTest {
         viewModel.resetAction()
         assertTrue(viewModel.actionState.value is ActionState.Idle)
     }
+
+    // ── loadCommercePacks ────────────────────────────────────────────────────
+
+    /**
+     * Given: comercio tiene packs publicados
+     * When: se llama loadCommercePacks
+     * Then: commercePacksState emite Success con los packs del comercio
+     */
+    @Test
+    fun `Given commerce has packs When loadCommercePacks called Then commercePacksState emits Success`() = runTest {
+        val packs = listOf(buildPack(1L), buildPack(2L))
+        every { reservationRepository.getReservationsByUser(any()) } returns flowOf(emptyList())
+        every { packRepository.getPacksByCommerce(1L) } returns flowOf(packs)
+
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase)
+        viewModel.loadCommercePacks(1L)
+        advanceUntilIdle()
+
+        val state = viewModel.commercePacksState.value
+        assertTrue(state is com.aprovecha.app.feature.reservations.ui.CommercePacksState.Success)
+        assertEquals(2, (state as com.aprovecha.app.feature.reservations.ui.CommercePacksState.Success).packs.size)
+    }
+
+    /**
+     * Given: repositorio de packs lanza excepción
+     * When: loadCommercePacks falla
+     * Then: commercePacksState emite Error
+     */
+    @Test
+    fun `Given packRepository throws When loadCommercePacks called Then commercePacksState emits Error`() = runTest {
+        every { reservationRepository.getReservationsByUser(any()) } returns flowOf(emptyList())
+        every {
+            packRepository.getPacksByCommerce(any())
+        } returns kotlinx.coroutines.flow.flow { throw RuntimeException("DB error") }
+
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase)
+        viewModel.loadCommercePacks(1L)
+        advanceUntilIdle()
+
+        val state = viewModel.commercePacksState.value
+        assertTrue(state is com.aprovecha.app.feature.reservations.ui.CommercePacksState.Error)
+    }
 }

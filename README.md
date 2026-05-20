@@ -92,7 +92,7 @@ cd Proyecto_IngSoft2
 
 ## Tests
 
-El proyecto tiene **53 tests unitarios** distribuidos en 4 módulos:
+El proyecto tiene **90 tests unitarios** distribuidos en 5 módulos:
 
 ```bash
 # Ejecutar todos los tests
@@ -107,7 +107,9 @@ El proyecto tiene **53 tests unitarios** distribuidos en 4 módulos:
 
 | Módulo | Archivo de Test | Tests |
 |--------|-----------------|-------|
+| `core:domain` | `LoginUserUseCaseTest` | 8 |
 | `core:domain` | `RegisterUserUseCaseTest` | 6 |
+| `core:domain` | `GetNearbyPacksUseCaseTest` | 5 |
 | `core:domain` | `PublishPackUseCaseTest` | 5 |
 | `core:domain` | `ReservePackUseCaseTest` | 2 |
 | `core:domain` | `MarkReservationWithdrawnUseCaseTest` | 2 |
@@ -115,6 +117,8 @@ El proyecto tiene **53 tests unitarios** distribuidos en 4 módulos:
 | `core:domain` | `ReservationConcurrencyTest` | 2 |
 | `core:data` | `AuthRepositoryImplTest` | 8 |
 | `core:data` | `PackRepositoryImplTest` | 10 |
+| `core:data` | `ReservationRepositoryImplTest` | 13 |
+| `feature:auth` | `AuthViewModelTest` | 11 |
 | `feature:products` | `ProductsViewModelTest` | 7 |
 | `feature:reservations` | `ReservationsViewModelTest` | 9 |
 

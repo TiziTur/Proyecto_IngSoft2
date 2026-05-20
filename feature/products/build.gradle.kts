@@ -17,6 +17,9 @@ android {
 
     buildTypes {
         release { isMinifyEnabled = false }
+        debug {
+            enableUnitTestCoverage = true
+        }
     }
     kotlinOptions { jvmTarget = "17" }
     compileOptions {

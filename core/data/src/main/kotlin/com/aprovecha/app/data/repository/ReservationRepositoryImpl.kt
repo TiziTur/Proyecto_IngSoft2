@@ -99,5 +99,6 @@ private fun ReservationEntity.toDomain() = Reservation(
     packId = packId,
     userId = userId,
     status = ReservationStatus.valueOf(status),
-    fechaReserva = LocalDateTime.parse(fechaReserva)
+    fechaReserva = LocalDateTime.parse(fechaReserva),
+    fechaActualizacion = LocalDateTime.parse(fechaActualizacion)
 )

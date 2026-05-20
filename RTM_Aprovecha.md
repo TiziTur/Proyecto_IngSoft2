@@ -80,12 +80,24 @@
 
 | Archivo | Requerimiento | Casos de Test | Estado |
 |---------|---------------|---------------|--------|
+| `LoginUserUseCaseTest.kt` | REQ-F01 | `givenValidConsumerCredentials_whenLogin_thenReturnsSuccessWithUser` | ✅ |
+| `LoginUserUseCaseTest.kt` | REQ-F01 | `givenValidCommerceCredentials_whenLogin_thenReturnsSuccessWithCommerceRole` | ✅ |
+| `LoginUserUseCaseTest.kt` | REQ-F01 | `givenBlankEmail_whenLogin_thenReturnsErrorWithoutCallingRepository` | ✅ |
+| `LoginUserUseCaseTest.kt` | REQ-F01 | `givenBlankPassword_whenLogin_thenReturnsErrorWithoutCallingRepository` | ✅ |
+| `LoginUserUseCaseTest.kt` | REQ-F01 | `givenBothFieldsBlank_whenLogin_thenReturnsError` | ✅ |
+| `LoginUserUseCaseTest.kt` | REQ-F01 | `givenUnknownEmail_whenLogin_thenPropagatesRepositoryError` | ✅ |
+| `LoginUserUseCaseTest.kt` | REQ-F01 | `givenEmailWithSpaces_whenLogin_thenEmailIsTrimmedBeforeRepository` | ✅ |
 | `RegisterUserUseCaseTest.kt` | REQ-F01 | `givenValidCommerceData_whenRegister_thenReturnsSuccessWithUser` | ✅ |
 | `RegisterUserUseCaseTest.kt` | REQ-F01 | `givenValidConsumerData_whenRegister_thenReturnsSuccessWithUser` | ✅ |
 | `RegisterUserUseCaseTest.kt` | REQ-F01 | `givenEmptyEmail_whenRegister_thenReturnsError` | ✅ |
 | `RegisterUserUseCaseTest.kt` | REQ-F01 | `givenPasswordTooShort_whenRegister_thenReturnsError` | ✅ |
 | `RegisterUserUseCaseTest.kt` | REQ-F01 | `givenEmptyNombre_whenRegister_thenReturnsError` | ✅ |
 | `RegisterUserUseCaseTest.kt` | REQ-F01 | `givenDuplicateEmail_whenRegister_thenPropagatesRepositoryError` | ✅ |
+| `GetNearbyPacksUseCaseTest.kt` | REQ-F03 | `givenAvailablePacks_whenInvokedWithCoordinates_thenEmitsList` | ✅ |
+| `GetNearbyPacksUseCaseTest.kt` | REQ-F03 | `givenNoPacks_whenInvoked_thenEmitsEmptyList` | ✅ |
+| `GetNearbyPacksUseCaseTest.kt` | REQ-F03 | `givenNoRadiusSpecified_whenInvoked_thenUsesDefaultRadius` | ✅ |
+| `GetNearbyPacksUseCaseTest.kt` | REQ-F03 | `givenCustomRadius_whenInvoked_thenPassesRadiusToRepository` | ✅ |
+| `GetNearbyPacksUseCaseTest.kt` | REQ-F03 | `givenPacksInRepository_whenInvoked_thenDelegatesToRepository` | ✅ |
 | `PublishPackUseCaseTest.kt` | REQ-F02 | `givenValidPack_whenPublish_thenReturnsSuccessWithStatusAvailable` | ✅ |
 | `PublishPackUseCaseTest.kt` | REQ-F02 | `givenPackWithPrices_whenPublish_thenDiscountPercentageIsCorrect` | ✅ |
 | `PublishPackUseCaseTest.kt` | REQ-F02 | `givenEmptyName_whenPublish_thenReturnsError` | ✅ |
@@ -122,11 +134,37 @@
 | `PackRepositoryImplTest.kt` | REQ-F02 | `Given AVAILABLE pack When deletePack called Then returns Success` | ✅ |
 | `PackRepositoryImplTest.kt` | REQ-F04 | `Given RESERVED pack When deletePack called Then returns Error` | ✅ |
 | `PackRepositoryImplTest.kt` | REQ-F02 | `Given commerce has packs When getPacksByCommerce Then emits commerce packs` | ✅ |
+| `PackRepositoryImplTest.kt` | REQ-F02 | `Given valid pack When updatePack called Then returns Success` | ✅ |
+| `PackRepositoryImplTest.kt` | REQ-F02 | `Given DAO throws When updatePack called Then returns Result Error` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F04 + REQ-NF01 | `Given available pack When createReservation called Then returns Success with RESERVED status` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-NF01 | `Given pack already reserved When createReservation called Then returns Error` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F04 | `Given DAO throws When createReservation called Then returns Result Error` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F04 | `Given successful reservation When verifying DAO calls Then both DAOs called once` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F05 | `Given RESERVED reservation When markAsWithdrawn called Then returns Success with WITHDRAWN` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F05 | `Given nonexistent reservation When markAsWithdrawn called Then returns Error not found` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F05 | `Given CANCELLED reservation When markAsWithdrawn called Then returns Error` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F06 | `Given RESERVED reservation When cancelReservation called Then returns Success with CANCELLED` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F06 | `Given WITHDRAWN reservation When cancelReservation called Then returns Error` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F06 | `Given nonexistent reservation When cancelReservation called Then returns Error not found` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F06 | `Given user has reservations When getReservationsByUser called Then emits mapped list` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F04 | `Given existing reservation When getReservationById called Then returns Success` | ✅ |
+| `ReservationRepositoryImplTest.kt` | REQ-F04 | `Given nonexistent reservation When getReservationById called Then returns Error` | ✅ |
 
 ### feature — ViewModel Tests
 
 | Archivo | Requerimiento | Casos de Test | Estado |
 |---------|---------------|---------------|--------|
+| `AuthViewModelTest.kt` | REQ-F01 | `Given valid credentials When login called Then uiState emits Success with role` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given commerce credentials When login called Then uiState emits Success with COMMERCE role` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given blank email When login called Then uiState emits Error immediately` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given blank password When login called Then uiState emits Error immediately` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given invalid credentials When login called Then uiState emits Error with message` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given valid data When register consumer Then uiState emits Success with CONSUMER role` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given valid data When register commerce Then uiState emits Success with COMMERCE role` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given blank fields When register called Then uiState emits Error` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given password too short When register called Then uiState emits Error` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given duplicate email When register called Then uiState emits Error` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given Success state When resetState called Then uiState returns to Idle` | ✅ |
 | `ProductsViewModelTest.kt` | REQ-F03 | `Given available packs When ViewModel initializes Then packsState emits Success` | ✅ |
 | `ProductsViewModelTest.kt` | REQ-F03 | `Given repository throws When loading packs Then packsState emits Error` | ✅ |
 | `ProductsViewModelTest.kt` | REQ-F03 | `Given valid packId When loadPackDetail called Then selectedPack is set` | ✅ |
@@ -143,6 +181,8 @@
 | `ReservationsViewModelTest.kt` | REQ-F02 | `Given valid pack When publishPack called Then actionState emits Success` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F02 | `Given invalid pack When publishPack fails validation Then actionState emits Error` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F02 | `Given Success actionState When resetAction called Then returns to Idle` | ✅ |
+| `ReservationsViewModelTest.kt` | REQ-F02 | `Given commerce has packs When loadCommercePacks called Then commercePacksState emits Success` | ✅ |
+| `ReservationsViewModelTest.kt` | REQ-F02 | `Given packRepository throws When loadCommercePacks called Then commercePacksState emits Error` | ✅ |
 
 ---
 
@@ -176,7 +216,7 @@ REQ-NF01→ PackDao.reservePackAtomically() (Room @Transaction)
 REQ-NF02→ ProGuard/R8 en release build                                           ⚠️ Parcial
 ```
 
-**Total de tests implementados: 53**
+**Total de tests implementados: 90**
 
 ---
 
