@@ -44,31 +44,35 @@ class ReservationRepositoryImpl @Inject constructor(
     }
 
     // @REQ-F05: RESERVED → WITHDRAWN
-    override suspend fun markAsWithdrawn(reservationId: Long): Result<Reservation> = try {
-        val entity = reservationDao.getReservationById(reservationId)
-            ?: return Result.Error(NoSuchElementException("Reserva no encontrada"))
-        if (entity.status != ReservationStatus.RESERVED.name) {
-            return Result.Error(IllegalStateException("Solo se pueden retirar reservas RESERVED"))
+    override suspend fun markAsWithdrawn(reservationId: Long): Result<Reservation> {
+        return try {
+            val entity = reservationDao.getReservationById(reservationId)
+                ?: return Result.Error(NoSuchElementException("Reserva no encontrada"))
+            if (entity.status != ReservationStatus.RESERVED.name) {
+                return Result.Error(IllegalStateException("Solo se pueden retirar reservas RESERVED"))
+            }
+            val now = LocalDateTime.now().toString()
+            reservationDao.markAsWithdrawn(reservationId, now)
+            Result.Success(entity.copy(status = ReservationStatus.WITHDRAWN.name, fechaActualizacion = now).toDomain())
+        } catch (e: Exception) {
+            Result.Error(e)
         }
-        val now = LocalDateTime.now().toString()
-        reservationDao.markAsWithdrawn(reservationId, now)
-        Result.Success(entity.copy(status = ReservationStatus.WITHDRAWN.name, fechaActualizacion = now).toDomain())
-    } catch (e: Exception) {
-        Result.Error(e)
     }
 
     // @REQ-F06: RESERVED → CANCELLED (libre hasta antes del retiro)
-    override suspend fun cancelReservation(reservationId: Long): Result<Reservation> = try {
-        val entity = reservationDao.getReservationById(reservationId)
-            ?: return Result.Error(NoSuchElementException("Reserva no encontrada"))
-        if (entity.status == ReservationStatus.WITHDRAWN.name) {
-            return Result.Error(IllegalStateException("No se puede cancelar una reserva ya retirada"))
+    override suspend fun cancelReservation(reservationId: Long): Result<Reservation> {
+        return try {
+            val entity = reservationDao.getReservationById(reservationId)
+                ?: return Result.Error(NoSuchElementException("Reserva no encontrada"))
+            if (entity.status == ReservationStatus.WITHDRAWN.name) {
+                return Result.Error(IllegalStateException("No se puede cancelar una reserva ya retirada"))
+            }
+            val now = LocalDateTime.now().toString()
+            reservationDao.cancelReservation(reservationId, now)
+            Result.Success(entity.copy(status = ReservationStatus.CANCELLED.name, fechaActualizacion = now).toDomain())
+        } catch (e: Exception) {
+            Result.Error(e)
         }
-        val now = LocalDateTime.now().toString()
-        reservationDao.cancelReservation(reservationId, now)
-        Result.Success(entity.copy(status = ReservationStatus.CANCELLED.name, fechaActualizacion = now).toDomain())
-    } catch (e: Exception) {
-        Result.Error(e)
     }
 
     override fun getReservationsByUser(userId: Long): Flow<List<Reservation>> =
