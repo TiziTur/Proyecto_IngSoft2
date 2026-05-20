@@ -147,7 +147,8 @@ class AuthViewModelTest {
      */
     @Test
     fun `Given valid data When register commerce Then uiState emits Success with COMMERCE role`() = runTest {
-        coEvery { authRepository.register(any(), any(), any(), any()) } returns Result.Success(buildUser(UserRole.COMMERCE))
+        coEvery { authRepository.register(any(), any(), any(), any()) } returns
+            Result.Success(buildUser(UserRole.COMMERCE))
 
         viewModel.register("tienda@test.com", "pass123", "Mi Tienda", UserRole.COMMERCE)
         advanceUntilIdle()

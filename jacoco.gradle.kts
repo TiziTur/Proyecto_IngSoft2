@@ -7,6 +7,60 @@
 val hasAndroid = plugins.hasPlugin("com.android.library") || plugins.hasPlugin("com.android.application")
 val unitTestTaskName = if (hasAndroid) "testDebugUnitTest" else "test"
 
+// Filtro compartido — excluye clases que no corresponde medir con unit tests
+val sharedFileFilter = listOf(
+    // Clases generadas por Android build
+    "**/R.class",
+    "**/R$*.class",
+    "**/BuildConfig.*",
+    "**/Manifest*.*",
+    "**/*Test*.*",
+    "android/**/*.*",
+    // Hilt generado
+    "**/*_HiltModules*",
+    "**/*Hilt_*",
+    "**/*_Factory*",
+    "**/*_MembersInjector*",
+    // Room generado
+    "**/*_Impl*",
+    "**/*Dao_Impl*",
+    "**/*Database_Impl*",
+    // UI de Jetpack Compose — Composables no son testeables con unit tests
+    "**/*Screen*",
+    "**/*Activity*",
+    "**/*Fragment*",
+    "**/*Navigation*",
+    "**/*Theme*",
+    "**/*Color*",
+    "**/*Typography*",
+    "**/*ComposableSingletons*",
+    "**/*Kt\$*",           // lambdas internas generadas por Compose
+    "**/*\$\$serializer*"  // kotlinx.serialization
+)
+
+fun buildClassDirectories(project: Project, filter: List<String>): FileCollection {
+    val debugTree = project.fileTree("${project.layout.buildDirectory.get()}/intermediates/javac/debug/classes") {
+        exclude(filter)
+    }
+    val kotlinDebugTree = project.fileTree("${project.layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
+        exclude(filter)
+    }
+    val jvmTree = project.fileTree("${project.layout.buildDirectory.get()}/classes/kotlin/main") {
+        exclude(filter)
+    }
+    return project.files(debugTree, kotlinDebugTree, jvmTree)
+}
+
+fun buildExecutionData(project: Project): FileTree {
+    return project.fileTree(project.layout.buildDirectory.get()) {
+        include(
+            "jacoco/testDebugUnitTest.exec",
+            "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
+            "jacoco/test.exec"
+        )
+    }
+}
+
 tasks.register<JacocoReport>("jacocoTestReport") {
     dependsOn(unitTestTaskName)
     group = "Reporting"
@@ -18,50 +72,19 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         csv.required.set(false)
     }
 
-    val fileFilter = listOf(
-        // Excluir clases generadas
-        "**/R.class",
-        "**/R$*.class",
-        "**/BuildConfig.*",
-        "**/Manifest*.*",
-        "**/*Test*.*",
-        "android/**/*.*",
-        // Excluir Hilt generado
-        "**/*_HiltModules*",
-        "**/*Hilt_*",
-        "**/*_Factory*",
-        "**/*_MembersInjector*",
-        // Excluir Room generado
-        "**/*_Impl*",
-        "**/*Dao_Impl*",
-        "**/*Database_Impl*"
-    )
-
-    val debugTree = fileTree("${layout.buildDirectory.get()}/intermediates/javac/debug/classes") {
-        exclude(fileFilter)
-    }
-    val kotlinDebugTree = fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
-        exclude(fileFilter)
-    }
-    val jvmTree = fileTree("${layout.buildDirectory.get()}/classes/kotlin/main") {
-        exclude(fileFilter)
-    }
-
     sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
-    classDirectories.setFrom(files(debugTree, kotlinDebugTree, jvmTree))
-    executionData.setFrom(fileTree(layout.buildDirectory.get()) {
-        include(
-            "jacoco/testDebugUnitTest.exec",
-            "outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec",
-            "jacoco/test.exec"
-        )
-    })
+    classDirectories.setFrom(buildClassDirectories(project, sharedFileFilter))
+    executionData.setFrom(buildExecutionData(project))
 }
 
 tasks.register<JacocoCoverageVerification>("jacocoTestCoverageVerification") {
     dependsOn("jacocoTestReport")
     group = "Verification"
     description = "Verifica que la cobertura de código sea >= 70% (IEEE 730 §5.3)"
+
+    sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    classDirectories.setFrom(buildClassDirectories(project, sharedFileFilter))
+    executionData.setFrom(buildExecutionData(project))
 
     violationRules {
         rule {

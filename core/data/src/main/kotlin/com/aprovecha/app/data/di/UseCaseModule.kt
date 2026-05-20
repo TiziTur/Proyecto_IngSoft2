@@ -36,7 +36,9 @@ object UseCaseModule {
     // @REQ-F05
     @Provides
     @Singleton
-    fun provideMarkReservationWithdrawnUseCase(reservationRepository: ReservationRepository): MarkReservationWithdrawnUseCase =
+    fun provideMarkReservationWithdrawnUseCase(
+        reservationRepository: ReservationRepository
+    ): MarkReservationWithdrawnUseCase =
         MarkReservationWithdrawnUseCase(reservationRepository)
 
     // @REQ-F06

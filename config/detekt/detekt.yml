@@ -67,6 +67,7 @@ complexity:
     ignoreDeprecated: false
     ignorePrivate: false
     ignoreOverridden: false
+    excludes: ['**/test/**', '**/androidTest/**']
 
   ComplexInterface:
     active: true
