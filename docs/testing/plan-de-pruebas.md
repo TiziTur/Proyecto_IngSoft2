@@ -1,0 +1,170 @@
+# Plan de Pruebas — Aprovecha App
+## Hito 4 · Ingeniería de Software II
+
+---
+
+## 1. Introducción
+
+Este documento describe el plan de pruebas para el sistema **Aprovecha**, una aplicación Android que conecta comercios con excedente de alimentos y consumidores que desean adquirirlos a precio reducido. El plan sigue lineamientos del estándar IEEE 829 y la norma IEEE 730 (SQA).
+
+---
+
+## 2. Alcance
+
+### 2.1 Módulos bajo prueba
+
+| Módulo | Paquete | Descripción |
+|--------|---------|-------------|
+| `core/domain` | `com.aprovecha.app.domain` | Casos de uso de negocio (auth, packs, reservas) |
+| `core/data` | `com.aprovecha.app.data` | Repositorios e implementaciones de acceso a datos |
+| `feature/products` | `com.aprovecha.app.feature.products` | ViewModel y estado UI del consumidor |
+| `feature/reservations` | `com.aprovecha.app.feature.reservations` | ViewModel y estado UI del comercio/reservas |
+
+### 2.2 Módulos excluidos
+
+- `app/` — punto de entrada Android, Hilt, navegación (sin lógica testeable con unit tests)
+- `core/ui` — solo tema y colores (sin lógica)
+- Composables de Jetpack Compose (excluidos explícitamente en JaCoCo)
+- Código generado por Room, Hilt y Kotlin compiler
+
+### 2.3 Requisitos cubiertos
+
+| Requisito | Descripción |
+|-----------|-------------|
+| REQ-F01 | Registro y login de comercios y consumidores |
+| REQ-F02 | Publicación de packs de alimentos con descuento |
+| REQ-F03 | Listado de packs disponibles cercanos al usuario |
+| REQ-F04 | Reserva de un pack por parte de un consumidor |
+| REQ-F05 | Marcado de reserva como retirada por el comercio |
+| REQ-F06 | Cancelación de reserva por el consumidor |
+| REQ-NF01 | Garantía de exclusividad: un pack solo puede reservarse una vez |
+
+---
+
+## 3. Estrategia de Pruebas
+
+### 3.1 Niveles de prueba
+
+| Nivel | Descripción | Herramientas |
+|-------|-------------|--------------|
+| **Unitaria** | Prueba de clases individuales con dependencias mockeadas | JUnit 4 + MockK |
+| **Integración liviana** | Verificación de colaboración entre capas (use case ↔ repositorio) | JUnit 4 + MockK |
+| **Concurrencia** | Simulación de múltiples coroutines sobre el mismo recurso | kotlinx-coroutines-test |
+
+### 3.2 Técnicas de diseño
+
+| Técnica | Descripción | Aplicación |
+|---------|-------------|------------|
+| **Caja Negra** | Prueba de comportamiento externo según especificación; no requiere conocimiento de la implementación | Use cases, ViewModels |
+| **Caja Blanca** | Prueba de caminos internos, ramas de código, llamadas a colaboradores | Repositorios, validaciones internas |
+
+### 3.3 Herramientas
+
+| Herramienta | Versión | Rol |
+|-------------|---------|-----|
+| JUnit 4 | 4.13.2 | Framework principal de testing |
+| MockK | 1.13.x | Mocking de dependencias en Kotlin |
+| kotlinx-coroutines-test | 1.7.x | Testing de coroutines (runTest, advanceUntilIdle) |
+| JaCoCo | Gradle plugin | Medición de cobertura de código |
+| Android Gradle Plugin | 8.x | Ejecución de `testDebugUnitTest` |
+
+---
+
+## 4. Criterios de Prueba
+
+### 4.1 Criterios de entrada (para iniciar las pruebas)
+
+- El código compila sin errores
+- Los módulos `core/domain` y `core/data` tienen sus tests escritos
+- Las dependencias de MockK y coroutines-test están declaradas en `build.gradle.kts`
+
+### 4.2 Criterios de salida (para considerar las pruebas completas)
+
+- Todos los tests automatizados pasan (BUILD SUCCESSFUL)
+- Cobertura de instrucciones ≥ 70% en módulos principales
+- Cobertura de ramas ≥ 60% en módulos principales
+- Al menos 15 casos de prueba documentados (caja negra + caja blanca)
+- Al menos 5 defectos formalmente reportados
+
+### 4.3 Criterios de cobertura (IEEE 730 §5.3)
+
+```
+Instrucciones (INSTRUCTION): mínimo 70%
+Ramas (BRANCH):              mínimo 60%
+```
+
+Configurado en `jacoco.gradle.kts` y verificado con `./gradlew jacocoTestCoverageVerification`.
+
+---
+
+## 5. Estructura de Archivos de Prueba
+
+```
+core/domain/src/test/
+  ├── RegisterUserUseCaseTest.kt       (5 tests  — REQ-F01)
+  ├── LoginUserUseCaseTest.kt          (7 tests  — REQ-F01)
+  ├── PublishPackUseCaseTest.kt        (5 tests  — REQ-F02)
+  ├── GetNearbyPacksUseCaseTest.kt     (5 tests  — REQ-F03)
+  ├── ReservePackUseCaseTest.kt        (2 tests  — REQ-F04)
+  ├── MarkReservationWithdrawnUseCaseTest.kt (2 tests — REQ-F05)
+  ├── CancelReservationUseCaseTest.kt  (2 tests  — REQ-F06)
+  └── ReservationConcurrencyTest.kt    (2 tests  — REQ-NF01)
+
+core/data/src/test/
+  ├── AuthRepositoryImplTest.kt        (8 tests  — REQ-F01)
+  ├── PackRepositoryImplTest.kt        (12 tests — REQ-F02, REQ-F03)
+  └── ReservationRepositoryImplTest.kt (12 tests — REQ-F04, REQ-F05, REQ-F06, REQ-NF01)
+
+feature/products/src/test/
+  └── ProductsViewModelTest.kt         (7 tests  — REQ-F03, REQ-F04)
+
+feature/reservations/src/test/
+  └── ReservationsViewModelTest.kt     (12 tests — REQ-F02, REQ-F05, REQ-F06)
+```
+
+**Total: 81 tests automatizados**
+
+---
+
+## 6. Comandos de Ejecución
+
+```bash
+# Ejecutar todos los tests
+./gradlew test testDebugUnitTest
+
+# Tests por módulo
+./gradlew :core:domain:test
+./gradlew :core:data:testDebugUnitTest
+./gradlew :feature:products:testDebugUnitTest
+./gradlew :feature:reservations:testDebugUnitTest
+
+# Generar reporte de cobertura
+./gradlew jacocoTestReport
+
+# Verificar umbral de cobertura
+./gradlew jacocoTestCoverageVerification
+```
+
+---
+
+## 7. Riesgos y Mitigaciones
+
+| Riesgo | Probabilidad | Impacto | Mitigación |
+|--------|-------------|---------|------------|
+| Cobertura insuficiente en capa de datos | Baja | Alto | JaCoCo configurado con umbral 70%; CI falla si no se cumple |
+| Tests dependientes de tiempo (LocalDateTime.now()) | Media | Medio | Se usa MockK para aislar; tiempo solo en comparaciones de estado |
+| Flakiness en tests de concurrencia | Baja | Medio | Se usa AtomicInteger determinista en lugar de timing real |
+| Cambios de API rompen tests | Media | Alto | Tests aislados con mocks; solo cambian cuando cambia el contrato |
+
+---
+
+## 8. Cronograma
+
+| Actividad | Estado |
+|-----------|--------|
+| Implementación de casos de prueba unitarios | ✅ Completado |
+| Configuración de JaCoCo | ✅ Completado |
+| Verificación de cobertura ≥ 70% | ✅ Completado |
+| Documentación de plan de pruebas | ✅ Completado |
+| Documentación de casos de prueba | ✅ Completado |
+| Reporte de defectos | ✅ Completado |
