@@ -5,14 +5,18 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val AprovechaColorScheme = lightColorScheme(
-    primary = Verde80,
+    primary = Bosque70,
     onPrimary = Surface,
-    primaryContainer = VerdeContainer,
-    onPrimaryContainer = Verde80,
-    secondary = Naranja80,
-    onSecondary = Surface,
-    secondaryContainer = NaranjaContainer,
-    onSecondaryContainer = Naranja80,
+    primaryContainer = BosqueContainer,
+    onPrimaryContainer = Bosque90,
+    secondary = Lima,
+    onSecondary = OnLima,
+    secondaryContainer = LimaContainer,
+    onSecondaryContainer = OnLima,
+    tertiary = Coral,
+    onTertiary = Surface,
+    tertiaryContainer = CoralContainer,
+    onTertiaryContainer = Coral,
     background = Background,
     onBackground = OnSurface,
     surface = Surface,
@@ -27,6 +31,7 @@ fun AprovechaTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = AprovechaColorScheme,
         typography = AprovechaTypography,
+        shapes = AprovechaShapes,
         content = content
     )
 }
