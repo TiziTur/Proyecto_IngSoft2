@@ -7,6 +7,7 @@ import com.aprovecha.app.domain.repository.AuthRepository
 import com.aprovecha.app.feature.auth.ui.AuthUiState
 import com.aprovecha.app.feature.auth.ui.AuthViewModel
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -212,6 +213,22 @@ class AuthViewModelTest {
         assertTrue(viewModel.uiState.value is AuthUiState.Success)
 
         viewModel.resetState()
+        assertTrue(viewModel.uiState.value is AuthUiState.Idle)
+    }
+
+    // ─── Logout ───────────────────────────────────────────────────────────────
+
+    /**
+     * // @REQ-F01: Logout limpia la sesión y devuelve el uiState a Idle
+     */
+    @Test
+    fun `Given active session When logout called Then authRepository logout invoked and uiState is Idle`() = runTest {
+        coEvery { authRepository.logout() } returns Unit
+
+        viewModel.logout()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { authRepository.logout() }
         assertTrue(viewModel.uiState.value is AuthUiState.Idle)
     }
 }

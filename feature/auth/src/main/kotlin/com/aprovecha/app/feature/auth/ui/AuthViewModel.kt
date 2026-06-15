@@ -69,5 +69,13 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    // @REQ-F01: Cierre de sesión
+    fun logout() {
+        viewModelScope.launch {
+            authRepository.logout()
+            _uiState.value = AuthUiState.Idle
+        }
+    }
+
     fun resetState() { _uiState.value = AuthUiState.Idle }
 }
