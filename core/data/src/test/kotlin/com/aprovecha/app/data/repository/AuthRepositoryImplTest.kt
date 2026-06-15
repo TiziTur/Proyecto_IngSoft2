@@ -2,7 +2,9 @@ package com.aprovecha.app.data.repository
 
 import com.aprovecha.app.common.util.Result
 import com.aprovecha.app.data.local.dao.UserDao
+import com.aprovecha.app.data.local.datastore.SessionManager
 import com.aprovecha.app.data.local.entity.UserEntity
+import com.aprovecha.app.domain.model.User
 import com.aprovecha.app.domain.model.UserRole
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -17,12 +19,14 @@ import org.junit.Test
 class AuthRepositoryImplTest {
 
     private lateinit var userDao: UserDao
+    private lateinit var sessionManager: SessionManager
     private lateinit var repository: AuthRepositoryImpl
 
     @Before
     fun setUp() {
         userDao = mockk()
-        repository = AuthRepositoryImpl(userDao)
+        sessionManager = mockk(relaxed = true)
+        repository = AuthRepositoryImpl(userDao, sessionManager)
     }
 
     private fun buildUserEntity(
@@ -110,6 +114,22 @@ class AuthRepositoryImplTest {
         assertTrue(result is Result.Error)
     }
 
+    /**
+     * Given: registro exitoso
+     * When: se completa el registro
+     * Then: sessionManager guarda la sesion del nuevo usuario
+     */
+    @Test
+    fun `Given successful register When called Then sessionManager saveSession invoked with new user`() = runTest {
+        coEvery { userDao.getUserByEmail(any()) } returns null
+        coEvery { userDao.insertUser(any()) } returns 5L
+
+        val result = repository.register("nuevo@test.com", "pass123", "Nuevo Usuario", UserRole.CONSUMER)
+
+        val user = (result as Result.Success).data
+        coVerify(exactly = 1) { sessionManager.saveSession(user) }
+    }
+
     // ── login ─────────────────────────────────────────────────────────────────
 
     /**
@@ -163,6 +183,22 @@ class AuthRepositoryImplTest {
     }
 
     /**
+     * Given: login exitoso
+     * When: se completa el login
+     * Then: sessionManager guarda la sesion del usuario autenticado
+     */
+    @Test
+    fun `Given successful login When called Then sessionManager saveSession invoked with user`() = runTest {
+        val entity = buildUserEntity(password = "pass123")
+        coEvery { userDao.getUserByEmail(entity.email) } returns entity
+
+        val result = repository.login(entity.email, "pass123")
+
+        val user = (result as Result.Success).data
+        coVerify(exactly = 1) { sessionManager.saveSession(user) }
+    }
+
+    /**
      * Given: registro exitoso
      * When: se verifica llamada al DAO
      * Then: insertUser fue llamado exactamente una vez
@@ -175,5 +211,46 @@ class AuthRepositoryImplTest {
         repository.register("test@test.com", "pass", "User", UserRole.CONSUMER)
 
         coVerify(exactly = 1) { userDao.insertUser(any()) }
+    }
+
+    // ── logout / getCurrentUser ─────────────────────────────────────────────
+
+    /**
+     * Given: hay una sesion guardada
+     * When: se llama getCurrentUser
+     * Then: devuelve el usuario que retorna sessionManager
+     */
+    @Test
+    fun `Given saved session When getCurrentUser called Then returns sessionManager user`() = runTest {
+        val user = User(id = 3L, email = "session@test.com", name = "Session User", role = UserRole.COMMERCE)
+        coEvery { sessionManager.getCurrentUser() } returns user
+
+        val result = repository.getCurrentUser()
+
+        assertEquals(user, result)
+    }
+
+    /**
+     * Given: no hay sesion guardada
+     * When: se llama getCurrentUser
+     * Then: devuelve null
+     */
+    @Test
+    fun `Given no saved session When getCurrentUser called Then returns null`() = runTest {
+        coEvery { sessionManager.getCurrentUser() } returns null
+
+        assertNull(repository.getCurrentUser())
+    }
+
+    /**
+     * Given: hay una sesion activa
+     * When: se llama logout
+     * Then: sessionManager limpia la sesion
+     */
+    @Test
+    fun `Given active session When logout called Then sessionManager clearSession invoked`() = runTest {
+        repository.logout()
+
+        coVerify(exactly = 1) { sessionManager.clearSession() }
     }
 }

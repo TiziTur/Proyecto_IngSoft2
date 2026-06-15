@@ -2,6 +2,7 @@ package com.aprovecha.app.data.repository
 
 import com.aprovecha.app.common.util.Result
 import com.aprovecha.app.data.local.dao.UserDao
+import com.aprovecha.app.data.local.datastore.SessionManager
 import com.aprovecha.app.data.local.entity.UserEntity
 import com.aprovecha.app.domain.model.User
 import com.aprovecha.app.domain.model.UserRole
@@ -11,7 +12,8 @@ import javax.inject.Inject
 // @REQ-F01: Implementación del repositorio de autenticación
 
 class AuthRepositoryImpl @Inject constructor(
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val sessionManager: SessionManager
 ) : AuthRepository {
 
     // @REQ-F01: Registro de nuevo usuario (COMMERCE o CONSUMER)
@@ -32,7 +34,9 @@ class AuthRepositoryImpl @Inject constructor(
                 role = role.name
             )
             val id = userDao.insertUser(entity)
-            Result.Success(entity.copy(id = id).toDomain())
+            val user = entity.copy(id = id).toDomain()
+            sessionManager.saveSession(user)
+            Result.Success(user)
         }
     } catch (e: Exception) {
         Result.Error(e)
@@ -46,15 +50,18 @@ class AuthRepositoryImpl @Inject constructor(
         } else if (entity.passwordHash != password.hashCode().toString()) {
             Result.Error(IllegalArgumentException("Contraseña incorrecta"))
         } else {
-            Result.Success(entity.toDomain())
+            val user = entity.toDomain()
+            sessionManager.saveSession(user)
+            Result.Success(user)
         }
     } catch (e: Exception) {
         Result.Error(e)
     }
 
-    override suspend fun getCurrentUser(): User? = null
+    // @REQ-F01: Sesion activa (DataStore)
+    override suspend fun getCurrentUser(): User? = sessionManager.getCurrentUser()
 
-    override suspend fun logout() { /* MVP: sesión en memoria */ }
+    override suspend fun logout() = sessionManager.clearSession()
 }
 
 private fun UserEntity.toDomain() = User(
