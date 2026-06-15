@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
@@ -45,23 +44,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.aprovecha.app.ui.theme.Bosque50
 
 // @REQ-F01: Pantalla de login de usuario registrado
 
 private object LoginScreenTokens {
-    val Background = Color(0xFFFAFAFA)
-    val HeaderStart = Color(0xFF2E7D32)
-    val HeaderEnd = Color(0xFF388E3C)
-    val HeaderSubtitle = Color(0xFFA5D6A7)
-    val Title = Color(0xFF212121)
-    val SecondaryText = Color(0xFF757575)
-    val PrimaryButton = Color(0xFF2E7D32)
-
     val HeaderHeight = 220.dp
     val ContainerPadding = 24.dp
-    val FieldCorner = 12.dp
     val PrimaryButtonHeight = 52.dp
-    val PrimaryButtonCorner = 26.dp
     val LoadingSize = 20.dp
     const val LogoSizeSp = 48
     const val ActionTextSizeSp = 16
@@ -90,7 +80,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LoginScreenTokens.Background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LoginHeader()
 
@@ -116,7 +106,7 @@ private fun LoginHeader() {
             .height(LoginScreenTokens.HeaderHeight)
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(LoginScreenTokens.HeaderStart, LoginScreenTokens.HeaderEnd)
+                    colors = listOf(MaterialTheme.colorScheme.primary, Bosque50)
                 )
             ),
         contentAlignment = Alignment.Center
@@ -135,7 +125,7 @@ private fun LoginHeader() {
             Text(
                 text = "Rescatá comida, ahorrá dinero",
                 style = MaterialTheme.typography.bodyMedium,
-                color = LoginScreenTokens.HeaderSubtitle
+                color = MaterialTheme.colorScheme.secondary
             )
         }
     }
@@ -163,7 +153,7 @@ private fun LoginForm(
         Text(
             text = "Iniciar sesión",
             style = MaterialTheme.typography.titleLarge,
-            color = LoginScreenTokens.Title
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         OutlinedTextField(
@@ -173,7 +163,7 @@ private fun LoginForm(
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
-            shape = RoundedCornerShape(LoginScreenTokens.FieldCorner)
+            shape = MaterialTheme.shapes.small
         )
 
         OutlinedTextField(
@@ -200,7 +190,7 @@ private fun LoginForm(
                 }
             },
             singleLine = true,
-            shape = RoundedCornerShape(LoginScreenTokens.FieldCorner)
+            shape = MaterialTheme.shapes.small
         )
 
         if (uiState is AuthUiState.Error) {
@@ -216,9 +206,9 @@ private fun LoginForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(LoginScreenTokens.PrimaryButtonHeight),
-            shape = RoundedCornerShape(LoginScreenTokens.PrimaryButtonCorner),
+            shape = MaterialTheme.shapes.large,
             enabled = uiState !is AuthUiState.Loading,
-            colors = ButtonDefaults.buttonColors(containerColor = LoginScreenTokens.PrimaryButton)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             if (uiState is AuthUiState.Loading) {
                 CircularProgressIndicator(
@@ -241,7 +231,7 @@ private fun LoginForm(
             HorizontalDivider(modifier = Modifier.weight(1f))
             Text(
                 text = "  ¿No tenés cuenta?  ",
-                color = LoginScreenTokens.SecondaryText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = LoginScreenTokens.DividerTextSizeSp.sp
             )
             HorizontalDivider(modifier = Modifier.weight(1f))
@@ -252,13 +242,13 @@ private fun LoginForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(LoginScreenTokens.PrimaryButtonHeight),
-            shape = RoundedCornerShape(LoginScreenTokens.PrimaryButtonCorner)
+            shape = MaterialTheme.shapes.large
         ) {
             Text(
                 text = "Crear cuenta",
                 fontWeight = FontWeight.SemiBold,
                 fontSize = LoginScreenTokens.ActionTextSizeSp.sp,
-                color = LoginScreenTokens.PrimaryButton
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
