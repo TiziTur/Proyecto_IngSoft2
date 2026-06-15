@@ -2,16 +2,21 @@
 
 package com.aprovecha.app.feature.products.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +32,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 // @REQ-F04: Detalle de pack con botón "Reservar ahora"
 
+private const val PICKUP_WINDOW_START = "19:00"
+private const val PICKUP_WINDOW_END = "21:00"
+
 @Composable
 fun PackDetailScreen(
     packId: Long,
@@ -37,6 +45,8 @@ fun PackDetailScreen(
     val pack by viewModel.selectedPack.collectAsState()
     val reserveState by viewModel.reserveState.collectAsState()
     var showErrorDialog by remember { mutableStateOf(false) }
+    var quantity by remember { mutableStateOf(1) }
+    var pickupTermsAccepted by remember { mutableStateOf(false) }
 
     LaunchedEffect(packId) { viewModel.loadPackDetail(packId) }
 
@@ -191,24 +201,115 @@ fun PackDetailScreen(
                 color = Color(0xFF757575)
             )
 
+            // ── Input crítico: cantidad, franja horaria y aceptación ─────────
+            QuantitySelector(
+                quantity = quantity,
+                maxQuantity = foodPack.quantity,
+                onDecrease = { quantity-- },
+                onIncrease = { quantity++ }
+            )
+            PickupTermsNotice()
+            PickupTermsCheckbox(
+                checked = pickupTermsAccepted,
+                onCheckedChange = { pickupTermsAccepted = it }
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             // Botón reservar
+            val total = foodPack.discountPrice * quantity
             Button(
                 onClick = { viewModel.reservePack(packId = foodPack.id) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(28.dp),
-                enabled = reserveState !is ReserveUiState.Loading,
+                enabled = pickupTermsAccepted && reserveState !is ReserveUiState.Loading,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2E7D32)
+                    containerColor = Color(0xFF2E7D32),
+                    disabledContainerColor = Color(0xFFDADADA),
+                    disabledContentColor = Color(0xFF9E9E9E)
                 )
             ) {
                 if (reserveState is ReserveUiState.Loading) {
                     CircularProgressIndicator(color = Color.White, modifier = Modifier.size(20.dp))
                 } else {
-                    Text("Reservar ahora 🛒", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                    Text("Reservar $${total.toInt()} ahora 🛒", fontWeight = FontWeight.Bold, fontSize = 17.sp)
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun QuantitySelector(
+    quantity: Int,
+    maxQuantity: Int,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("Cantidad", style = MaterialTheme.typography.titleMedium)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            IconButton(onClick = onDecrease, enabled = quantity > 1) {
+                Icon(Icons.Default.Remove, contentDescription = "Quitar uno")
+            }
+            Text(
+                "$quantity",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+            IconButton(onClick = onIncrease, enabled = quantity < maxQuantity) {
+                Icon(Icons.Default.Add, contentDescription = "Agregar uno")
+            }
+        }
+    }
+}
+
+@Composable
+private fun PickupTermsNotice() {
+    Surface(
+        color = Color(0xFFFFF3CD),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, Color(0xFFFFB74D))
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                Icons.Default.WarningAmber,
+                contentDescription = null,
+                tint = Color(0xFFE65100),
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                "Al rescatar esta comida, te comprometés a retirarla hoy entre " +
+                    "las $PICKUP_WINDOW_START y las $PICKUP_WINDOW_END hs. " +
+                    "No hay devoluciones por llegada tardía.",
+                fontSize = 13.sp,
+                color = Color(0xFF6D4C00)
+            )
+        }
+    }
+}
+
+@Composable
+private fun PickupTermsCheckbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(checkedColor = Color(0xFF2E7D32))
+        )
+        Text("Entiendo y acepto el horario de retiro", fontSize = 13.sp, color = Color(0xFF424242))
     }
 }
