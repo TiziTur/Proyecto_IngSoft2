@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -57,21 +56,10 @@ import com.aprovecha.app.domain.model.UserRole
 // @REQ-F01: Pantalla de registro con selección de rol COMMERCE / CONSUMER
 
 private object RegisterScreenTokens {
-    val AppBarColor = Color(0xFF2E7D32)
-    val TitleColor = Color(0xFF212121)
-    val ConsumerColor = Color(0xFF2E7D32)
-    val CommerceColor = Color(0xFFE65100)
-    val UnselectedBorder = Color(0xFFE0E0E0)
-    val UnselectedIcon = Color(0xFF9E9E9E)
-    val SecondaryText = Color(0xFF757575)
-
     val ContentPadding = 24.dp
     val VerticalSpacing = 16.dp
     val RoleSpacing = 12.dp
-    val FieldCorner = 12.dp
     val ButtonHeight = 52.dp
-    val ButtonCorner = 26.dp
-    val RoleCardCorner = 16.dp
     val RoleCardBorder = 2.dp
     val RoleCardInnerPadding = 16.dp
     val RoleCardIconSize = 36.dp
@@ -113,7 +101,7 @@ fun RegisterScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = RegisterScreenTokens.AppBarColor,
+                    containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -169,7 +157,7 @@ private fun RegisterForm(
             label = { Text("Nombre completo / Nombre del local") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            shape = RoundedCornerShape(RegisterScreenTokens.FieldCorner)
+            shape = MaterialTheme.shapes.small
         )
 
         OutlinedTextField(
@@ -179,7 +167,7 @@ private fun RegisterForm(
             modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
-            shape = RoundedCornerShape(RegisterScreenTokens.FieldCorner)
+            shape = MaterialTheme.shapes.small
         )
 
         OutlinedTextField(
@@ -190,13 +178,13 @@ private fun RegisterForm(
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
-            shape = RoundedCornerShape(RegisterScreenTokens.FieldCorner)
+            shape = MaterialTheme.shapes.small
         )
 
         Text(
             text = "¿Cómo vas a usar Aprovecha!?",
             style = MaterialTheme.typography.titleMedium,
-            color = RegisterScreenTokens.TitleColor
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Row(
@@ -208,7 +196,7 @@ private fun RegisterForm(
                     icon = Icons.Default.Person,
                     title = "Consumidor",
                     subtitle = "Compro packs con descuento",
-                    selectedColor = RegisterScreenTokens.ConsumerColor,
+                    selectedColor = MaterialTheme.colorScheme.primary,
                     onClick = { onRoleSelected(UserRole.CONSUMER) }
                 ),
                 selected = selectedRole == UserRole.CONSUMER,
@@ -219,7 +207,7 @@ private fun RegisterForm(
                     icon = Icons.Default.Storefront,
                     title = "Comercio",
                     subtitle = "Publico mis excedentes",
-                    selectedColor = RegisterScreenTokens.CommerceColor,
+                    selectedColor = MaterialTheme.colorScheme.tertiary,
                     onClick = { onRoleSelected(UserRole.COMMERCE) }
                 ),
                 selected = selectedRole == UserRole.COMMERCE,
@@ -240,9 +228,9 @@ private fun RegisterForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(RegisterScreenTokens.ButtonHeight),
-            shape = RoundedCornerShape(RegisterScreenTokens.ButtonCorner),
+            shape = MaterialTheme.shapes.large,
             enabled = uiState !is AuthUiState.Loading && selectedRole != null,
-            colors = ButtonDefaults.buttonColors(containerColor = RegisterScreenTokens.ConsumerColor)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             if (uiState is AuthUiState.Loading) {
                 CircularProgressIndicator(
@@ -274,20 +262,20 @@ private fun RoleCard(
     selected: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (selected) option.selectedColor else RegisterScreenTokens.UnselectedBorder
+    val borderColor = if (selected) option.selectedColor else MaterialTheme.colorScheme.outline
     val backgroundColor = if (selected) {
         option.selectedColor.copy(alpha = RegisterScreenTokens.RoleCardAlpha)
     } else {
-        Color.White
+        MaterialTheme.colorScheme.surface
     }
 
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(RegisterScreenTokens.RoleCardCorner))
+            .clip(MaterialTheme.shapes.small)
             .border(
                 RegisterScreenTokens.RoleCardBorder,
                 borderColor,
-                RoundedCornerShape(RegisterScreenTokens.RoleCardCorner)
+                MaterialTheme.shapes.small
             )
             .background(backgroundColor)
             .clickable(onClick = option.onClick)
@@ -298,19 +286,19 @@ private fun RoleCard(
         Icon(
             imageVector = option.icon,
             contentDescription = null,
-            tint = if (selected) option.selectedColor else RegisterScreenTokens.UnselectedIcon,
+            tint = if (selected) option.selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(RegisterScreenTokens.RoleCardIconSize)
         )
         Text(
             text = option.title,
             fontWeight = FontWeight.SemiBold,
             fontSize = RegisterScreenTokens.RoleTitleSizeSp.sp,
-            color = if (selected) option.selectedColor else RegisterScreenTokens.TitleColor
+            color = if (selected) option.selectedColor else MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = option.subtitle,
             fontSize = RegisterScreenTokens.RoleSubtitleSizeSp.sp,
-            color = RegisterScreenTokens.SecondaryText,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }
