@@ -40,7 +40,6 @@ obj/
 *.sublime-workspace
 
 # Local development properties
-gradle.properties
 local.properties
 
 # Gradle daemon
