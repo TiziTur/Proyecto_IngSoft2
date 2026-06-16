@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.aprovecha.app.common.util.Result
 import com.aprovecha.app.domain.model.FoodPack
 import com.aprovecha.app.domain.model.Reservation
+import com.aprovecha.app.domain.repository.AuthRepository
 import com.aprovecha.app.domain.repository.PackRepository
 import com.aprovecha.app.domain.repository.ReservationRepository
 import com.aprovecha.app.domain.usecase.pack.PublishPackUseCase
@@ -41,14 +42,14 @@ sealed class ActionState {
 class ReservationsViewModel @Inject constructor(
     private val reservationRepository: ReservationRepository,
     private val packRepository: PackRepository,
-    private val publishPackUseCase: PublishPackUseCase
+    private val publishPackUseCase: PublishPackUseCase,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private companion object {
-        const val DEFAULT_USER_ID = 1L
-        const val DEFAULT_COMMERCE_ID = 1L
         const val GENERIC_ERROR_MESSAGE = "Error"
         const val UNEXPECTED_ERROR_MESSAGE = "Error inesperado"
+        const val SESSION_ERROR_MESSAGE = "Sesión no encontrada. Iniciá sesión nuevamente."
     }
 
     private val _reservationsState = MutableStateFlow<ReservationsUiState>(ReservationsUiState.Loading)
@@ -60,9 +61,14 @@ class ReservationsViewModel @Inject constructor(
     private val _actionState = MutableStateFlow<ActionState>(ActionState.Idle)
     val actionState: StateFlow<ActionState> = _actionState.asStateFlow()
 
-    // @REQ-F06: Cargar reservas del usuario (userId hardcodeado = 1 para MVP)
-    fun loadUserReservations(userId: Long = DEFAULT_USER_ID) {
+    // @REQ-F06: Cargar reservas del usuario de la sesión activa
+    fun loadUserReservations() {
         viewModelScope.launch {
+            val userId = authRepository.getCurrentUser()?.id
+            if (userId == null) {
+                _reservationsState.value = ReservationsUiState.Error(SESSION_ERROR_MESSAGE)
+                return@launch
+            }
             reservationRepository.getReservationsByUser(userId)
                 .catch {
                     _reservationsState.value = ReservationsUiState.Error(it.message ?: GENERIC_ERROR_MESSAGE)
@@ -71,9 +77,14 @@ class ReservationsViewModel @Inject constructor(
         }
     }
 
-    // Cargar packs del comercio (commerceId hardcodeado = 1 para MVP)
-    fun loadCommercePacks(commerceId: Long = DEFAULT_COMMERCE_ID) {
+    // Cargar packs del comercio de la sesión activa
+    fun loadCommercePacks() {
         viewModelScope.launch {
+            val commerceId = authRepository.getCurrentUser()?.id
+            if (commerceId == null) {
+                _commercePacksState.value = CommercePacksState.Error(SESSION_ERROR_MESSAGE)
+                return@launch
+            }
             packRepository.getPacksByCommerce(commerceId)
                 .catch {
                     _commercePacksState.value = CommercePacksState.Error(it.message ?: GENERIC_ERROR_MESSAGE)
@@ -106,11 +117,16 @@ class ReservationsViewModel @Inject constructor(
         }
     }
 
-    // @REQ-F02: Publicar nuevo pack
+    // @REQ-F02: Publicar nuevo pack, usando el comercio de la sesión activa
     fun publishPack(pack: FoodPack) {
         viewModelScope.launch {
+            val commerceId = authRepository.getCurrentUser()?.id
+            if (commerceId == null) {
+                _actionState.value = ActionState.Error(SESSION_ERROR_MESSAGE)
+                return@launch
+            }
             _actionState.value = ActionState.Loading
-            _actionState.value = when (val r = publishPackUseCase(pack)) {
+            _actionState.value = when (val r = publishPackUseCase(pack.copy(commerceId = commerceId))) {
                 is Result.Success -> ActionState.Success
                 is Result.Error -> ActionState.Error(r.exception.message ?: "Error al publicar")
                 else -> ActionState.Error(UNEXPECTED_ERROR_MESSAGE)

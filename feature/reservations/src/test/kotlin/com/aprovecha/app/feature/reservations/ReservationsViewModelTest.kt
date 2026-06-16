@@ -4,10 +4,14 @@ import com.aprovecha.app.common.util.Result
 import com.aprovecha.app.domain.model.FoodPack
 import com.aprovecha.app.domain.model.Reservation
 import com.aprovecha.app.domain.model.ReservationStatus
+import com.aprovecha.app.domain.model.User
+import com.aprovecha.app.domain.model.UserRole
+import com.aprovecha.app.domain.repository.AuthRepository
 import com.aprovecha.app.domain.repository.PackRepository
 import com.aprovecha.app.domain.repository.ReservationRepository
 import com.aprovecha.app.domain.usecase.pack.PublishPackUseCase
 import com.aprovecha.app.feature.reservations.ui.ActionState
+import com.aprovecha.app.feature.reservations.ui.CommercePacksState
 import com.aprovecha.app.feature.reservations.ui.ReservationsUiState
 import com.aprovecha.app.feature.reservations.ui.ReservationsViewModel
 import io.mockk.coEvery
@@ -36,6 +40,7 @@ class ReservationsViewModelTest {
     private lateinit var reservationRepository: ReservationRepository
     private lateinit var packRepository: PackRepository
     private lateinit var publishPackUseCase: PublishPackUseCase
+    private lateinit var authRepository: AuthRepository
     private lateinit var viewModel: ReservationsViewModel
 
     @Before
@@ -44,6 +49,7 @@ class ReservationsViewModelTest {
         reservationRepository = mockk()
         packRepository = mockk()
         publishPackUseCase = mockk()
+        authRepository = mockk()
     }
 
     @After
@@ -70,27 +76,36 @@ class ReservationsViewModelTest {
         quantity = 3
     )
 
+    private fun buildUser(id: Long = 1L) = User(
+        id = id,
+        email = "user@test.com",
+        name = "Test User",
+        role = UserRole.CONSUMER
+    )
+
     private fun createViewModel(): ReservationsViewModel {
         every { reservationRepository.getReservationsByUser(any()) } returns flowOf(emptyList())
         every { packRepository.getPacksByCommerce(any()) } returns flowOf(emptyList())
-        return ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase)
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
+        return ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
     }
 
     // ── loadUserReservations ─────────────────────────────────────────────────
 
     /**
-     * Given: usuario tiene 2 reservas
+     * Given: usuario con sesión activa tiene 2 reservas
      * When: se llama loadUserReservations
      * Then: reservationsState emite Success con las 2 reservas
      */
     @Test
     fun `Given user has reservations When loadUserReservations called Then state emits Success`() = runTest {
         val reservations = listOf(buildReservation(1L), buildReservation(2L))
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
         every { reservationRepository.getReservationsByUser(1L) } returns flowOf(reservations)
         every { packRepository.getPacksByCommerce(any()) } returns flowOf(emptyList())
 
-        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase)
-        viewModel.loadUserReservations(1L)
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadUserReservations()
         advanceUntilIdle()
 
         val state = viewModel.reservationsState.value
@@ -105,17 +120,36 @@ class ReservationsViewModelTest {
      */
     @Test
     fun `Given repository throws When loadUserReservations fails Then state emits Error`() = runTest {
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
         every {
             reservationRepository.getReservationsByUser(any())
         } returns kotlinx.coroutines.flow.flow { throw RuntimeException("DB error") }
         every { packRepository.getPacksByCommerce(any()) } returns flowOf(emptyList())
 
-        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase)
-        viewModel.loadUserReservations(1L)
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadUserReservations()
         advanceUntilIdle()
 
         val state = viewModel.reservationsState.value
         assertTrue(state is ReservationsUiState.Error)
+    }
+
+    /**
+     * Given: no hay sesión activa
+     * When: se llama loadUserReservations
+     * Then: reservationsState emite Error sin llamar al repositorio
+     */
+    @Test
+    fun `Given no session When loadUserReservations called Then state emits Error`() = runTest {
+        coEvery { authRepository.getCurrentUser() } returns null
+
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadUserReservations()
+        advanceUntilIdle()
+
+        val state = viewModel.reservationsState.value
+        assertTrue(state is ReservationsUiState.Error)
+        assertTrue((state as ReservationsUiState.Error).message.contains("Sesión"))
     }
 
     // ── cancelReservation ────────────────────────────────────────────────────
@@ -199,14 +233,15 @@ class ReservationsViewModelTest {
     // ── publishPack ──────────────────────────────────────────────────────────
 
     /**
-     * Given: pack válido
+     * Given: pack válido y sesión activa de un comercio
      * When: se publica el pack
-     * Then: actionState emite Success
+     * Then: actionState emite Success y se usa el commerceId de la sesión
      */
     @Test
     fun `Given valid pack When publishPack called Then actionState emits Success`() = runTest {
         val pack = buildPack()
-        coEvery { publishPackUseCase(pack) } returns Result.Success(pack)
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
+        coEvery { publishPackUseCase(pack.copy(commerceId = 1L)) } returns Result.Success(pack)
 
         viewModel = createViewModel()
         viewModel.publishPack(pack)
@@ -223,7 +258,8 @@ class ReservationsViewModelTest {
     @Test
     fun `Given invalid pack When publishPack fails validation Then actionState emits Error`() = runTest {
         val invalidPack = buildPack().copy(discountPrice = 600.0) // mayor que originalPrice
-        coEvery { publishPackUseCase(invalidPack) } returns
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
+        coEvery { publishPackUseCase(invalidPack.copy(commerceId = 1L)) } returns
             Result.Error(IllegalArgumentException("El precio de descuento debe ser menor al precio original"))
 
         viewModel = createViewModel()
@@ -233,6 +269,26 @@ class ReservationsViewModelTest {
         val state = viewModel.actionState.value
         assertTrue(state is ActionState.Error)
         assertTrue((state as ActionState.Error).message.contains("descuento"))
+    }
+
+    /**
+     * Given: no hay sesión activa
+     * When: se intenta publicar un pack
+     * Then: actionState emite Error sin llamar al use case
+     */
+    @Test
+    fun `Given no session When publishPack called Then actionState emits Error`() = runTest {
+        coEvery { authRepository.getCurrentUser() } returns null
+        every { reservationRepository.getReservationsByUser(any()) } returns flowOf(emptyList())
+        every { packRepository.getPacksByCommerce(any()) } returns flowOf(emptyList())
+
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.publishPack(buildPack())
+        advanceUntilIdle()
+
+        val state = viewModel.actionState.value
+        assertTrue(state is ActionState.Error)
+        assertTrue((state as ActionState.Error).message.contains("Sesión"))
     }
 
     /**
@@ -256,23 +312,24 @@ class ReservationsViewModelTest {
     // ── loadCommercePacks ────────────────────────────────────────────────────
 
     /**
-     * Given: comercio tiene packs publicados
+     * Given: comercio con sesión activa tiene packs publicados
      * When: se llama loadCommercePacks
      * Then: commercePacksState emite Success con los packs del comercio
      */
     @Test
     fun `Given commerce has packs When loadCommercePacks called Then commercePacksState emits Success`() = runTest {
         val packs = listOf(buildPack(1L), buildPack(2L))
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
         every { reservationRepository.getReservationsByUser(any()) } returns flowOf(emptyList())
         every { packRepository.getPacksByCommerce(1L) } returns flowOf(packs)
 
-        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase)
-        viewModel.loadCommercePacks(1L)
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadCommercePacks()
         advanceUntilIdle()
 
         val state = viewModel.commercePacksState.value
-        assertTrue(state is com.aprovecha.app.feature.reservations.ui.CommercePacksState.Success)
-        assertEquals(2, (state as com.aprovecha.app.feature.reservations.ui.CommercePacksState.Success).packs.size)
+        assertTrue(state is CommercePacksState.Success)
+        assertEquals(2, (state as CommercePacksState.Success).packs.size)
     }
 
     /**
@@ -282,16 +339,35 @@ class ReservationsViewModelTest {
      */
     @Test
     fun `Given packRepository throws When loadCommercePacks called Then commercePacksState emits Error`() = runTest {
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
         every { reservationRepository.getReservationsByUser(any()) } returns flowOf(emptyList())
         every {
             packRepository.getPacksByCommerce(any())
         } returns kotlinx.coroutines.flow.flow { throw RuntimeException("DB error") }
 
-        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase)
-        viewModel.loadCommercePacks(1L)
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadCommercePacks()
         advanceUntilIdle()
 
         val state = viewModel.commercePacksState.value
-        assertTrue(state is com.aprovecha.app.feature.reservations.ui.CommercePacksState.Error)
+        assertTrue(state is CommercePacksState.Error)
+    }
+
+    /**
+     * Given: no hay sesión activa
+     * When: se llama loadCommercePacks
+     * Then: commercePacksState emite Error sin llamar al repositorio
+     */
+    @Test
+    fun `Given no session When loadCommercePacks called Then commercePacksState emits Error`() = runTest {
+        coEvery { authRepository.getCurrentUser() } returns null
+
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadCommercePacks()
+        advanceUntilIdle()
+
+        val state = viewModel.commercePacksState.value
+        assertTrue(state is CommercePacksState.Error)
+        assertTrue((state as CommercePacksState.Error).message.contains("Sesión"))
     }
 }

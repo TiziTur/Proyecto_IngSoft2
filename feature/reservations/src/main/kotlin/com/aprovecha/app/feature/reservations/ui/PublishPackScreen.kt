@@ -179,7 +179,7 @@ fun PublishPackScreen(
             Button(
                 onClick = {
                     val pack = FoodPack(
-                        commerceId = 1L, // MVP: comercio hardcodeado
+                        commerceId = 0L, // se sobreescribe con el comercio de la sesion en el ViewModel
                         name = name,
                         description = description,
                         originalPrice = origD,
