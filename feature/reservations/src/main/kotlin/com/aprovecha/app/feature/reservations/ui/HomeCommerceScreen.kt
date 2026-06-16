@@ -23,113 +23,118 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aprovecha.app.domain.model.FoodPack
 import com.aprovecha.app.domain.model.PackStatus
+import com.aprovecha.app.ui.components.AprovechaBottomBar
+import com.aprovecha.app.ui.theme.Bosque50
 
 // @REQ-F02: Home del comercio — ver packs publicados y estadísticas
 
 @Composable
 fun HomeCommerceScreen(
     onPublishPack: () -> Unit,
+    onGoToProfile: () -> Unit,
     viewModel: ReservationsViewModel = hiltViewModel()
 ) {
     val packsState by viewModel.commercePacksState.collectAsState()
 
     LaunchedEffect(Unit) { viewModel.loadCommercePacks() }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFAFAFA))
-    ) {
-        // ── Header verde ──────────────────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(Color(0xFF2E7D32), Color(0xFF388E3C))))
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-        ) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50)))
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Hola, Panadería 👋", fontSize = 13.sp, color = MaterialTheme.colorScheme.secondary)
+                        Text("Panel Comercio", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                    IconButton(onClick = {}) {
+                        Icon(Icons.Default.Notifications, contentDescription = null, tint = Color.White)
+                    }
+                }
+            }
+
+            val packs = (packsState as? CommercePacksState.Success)?.packs ?: emptyList()
+            val active = packs.count { it.status == PackStatus.AVAILABLE }
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                StatCard("$active", "Packs activos", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                StatCard("${packs.size}", "Total publicados", MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
+                StatCard("🌱", "Kg rescatados", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text("Hola, Panadería 👋", fontSize = 13.sp, color = Color(0xFFA5D6A7))
-                    Text("Panel Comercio", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
-                IconButton(onClick = {}) {
-                    Icon(Icons.Default.Notifications, contentDescription = null, tint = Color.White)
-                }
-            }
-        }
-
-        // ── Stats ─────────────────────────────────────────────────────────────
-        val packs = (packsState as? CommercePacksState.Success)?.packs ?: emptyList()
-        val active = packs.count { it.status == PackStatus.AVAILABLE }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            StatCard("$active", "Packs activos", Color(0xFF2E7D32), Modifier.weight(1f))
-            StatCard("${packs.size}", "Total publicados", Color(0xFFE65100), Modifier.weight(1f))
-            StatCard("🌱", "Kg rescatados", Color(0xFF2E7D32), Modifier.weight(1f))
-        }
-
-        // ── Sección packs ─────────────────────────────────────────────────────
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Mis Packs", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Button(
-                onClick = onPublishPack,
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100)),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Publicar", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-
-        // Lista de packs
-        when (val state = packsState) {
-            is CommercePacksState.Loading -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF2E7D32))
+                Text("Mis Packs", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Button(
+                    onClick = onPublishPack,
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("Publicar", fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
             }
-            is CommercePacksState.Error -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
-                }
-            }
-            is CommercePacksState.Success -> {
-                if (state.packs.isEmpty()) {
+
+            when (val state = packsState) {
+                is CommercePacksState.Loading -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("🍱", fontSize = 48.sp)
-                            Text("Publicá tu primer pack", color = Color(0xFF9E9E9E))
-                        }
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
-                } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(state.packs, key = { it.id }) { pack ->
-                            CommercePackCard(pack = pack)
+                }
+                is CommercePacksState.Error -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(state.message, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+                is CommercePacksState.Success -> {
+                    if (state.packs.isEmpty()) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("🍱", fontSize = 48.sp)
+                                Text("Publicá tu primer pack", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(state.packs, key = { it.id }) { pack ->
+                                CommercePackCard(pack = pack)
+                            }
+                            item { Spacer(Modifier.height(80.dp)) }
                         }
                     }
                 }
             }
         }
+
+        AprovechaBottomBar(
+            currentRoute = "home_commerce",
+            isCommerce = true,
+            onNavigate = { route -> if (route == "profile") onGoToProfile() },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -138,7 +143,7 @@ private fun StatCard(value: String, label: String, color: Color, modifier: Modif
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -146,7 +151,7 @@ private fun StatCard(value: String, label: String, color: Color, modifier: Modif
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(value, fontSize = if (value.length <= 4) 24.sp else 18.sp, fontWeight = FontWeight.Bold, color = color)
-            Text(label, fontSize = 11.sp, color = Color(0xFF757575))
+            Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -154,15 +159,15 @@ private fun StatCard(value: String, label: String, color: Color, modifier: Modif
 @Composable
 private fun CommercePackCard(pack: FoodPack) {
     val isActive = pack.status == PackStatus.AVAILABLE
-    val badgeColor = if (isActive) Color(0xFF2E7D32) else Color(0xFF9E9E9E)
-    val badgeBg = if (isActive) Color(0xFFE8F5E9) else Color(0xFFF5F5F5)
+    val badgeColor = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    val badgeBg = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
     val badgeLabel = if (isActive) "ACTIVO" else pack.status.name
     val discountPct = ((1 - pack.discountPrice / pack.originalPrice) * 100).toInt()
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
@@ -174,7 +179,7 @@ private fun CommercePackCard(pack: FoodPack) {
                 modifier = Modifier
                     .size(56.dp)
                     .background(
-                        Brush.linearGradient(listOf(Color(0xFFE65100), Color(0xFFFF8F00))),
+                        Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50)),
                         RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -195,13 +200,13 @@ private fun CommercePackCard(pack: FoodPack) {
                         )
                     }
                 }
-                Text("${pack.quantity} unidades · -$discountPct%", fontSize = 12.sp, color = Color(0xFF757575))
+                Text("${pack.quantity} unidades · -$discountPct%", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("$${pack.discountPrice.toInt()}", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF2E7D32))
+                    Text("$${pack.discountPrice.toInt()}", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
                     Text(
                         "$${pack.originalPrice.toInt()}",
                         fontSize = 12.sp,
-                        color = Color(0xFFBDBDBD),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textDecoration = TextDecoration.LineThrough
                     )
                 }

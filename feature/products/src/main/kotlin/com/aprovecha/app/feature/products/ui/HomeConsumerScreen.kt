@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aprovecha.app.domain.model.FoodPack
+import com.aprovecha.app.ui.components.AprovechaBottomBar
+import com.aprovecha.app.ui.theme.Bosque50
 
 // @REQ-F03: Home del consumidor — lista de packs cercanos
 
@@ -31,103 +33,116 @@ import com.aprovecha.app.domain.model.FoodPack
 fun HomeConsumerScreen(
     onPackClick: (packId: Long) -> Unit,
     onGoToReservations: () -> Unit,
+    onGoToFavorites: () -> Unit,
+    onGoToProfile: () -> Unit,
     viewModel: ProductsViewModel = hiltViewModel()
 ) {
     val packsState by viewModel.packsState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFAFAFA))
-    ) {
-        // ── Header verde ──────────────────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(Color(0xFF2E7D32), Color(0xFF388E3C))))
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50)))
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
-                Column {
-                    Text("Hola 👋", fontSize = 13.sp, color = Color(0xFFA5D6A7))
-                    Text("¿Qué vas a rescatar hoy?", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
-                IconButton(onClick = {}) {
-                    Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = Color.White)
-                }
-            }
-        }
-
-        // ── Barra de búsqueda ─────────────────────────────────────────────────
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            placeholder = { Text("Buscar packs, comercios…") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            shape = RoundedCornerShape(24.dp),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White
-            )
-        )
-
-        // ── Lista de packs ────────────────────────────────────────────────────
-        when (val state = packsState) {
-            is PacksUiState.Loading -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFF2E7D32))
-                }
-            }
-            is PacksUiState.Error -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(state.message, color = MaterialTheme.colorScheme.error)
-                }
-            }
-            is PacksUiState.Success -> {
-                val filtered = state.packs.filter {
-                    searchQuery.isBlank() || it.name.contains(searchQuery, ignoreCase = true)
-                }
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    item {
+                    Column {
+                        Text("Hola 👋", fontSize = 13.sp, color = MaterialTheme.colorScheme.secondary)
                         Text(
-                            "Destacados 🔥",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(vertical = 4.dp)
+                            "¿Qué vas a rescatar hoy?",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
                         )
                     }
-                    if (filtered.isEmpty()) {
+                    IconButton(onClick = {}) {
+                        Icon(Icons.Default.Notifications, contentDescription = "Notificaciones", tint = Color.White)
+                    }
+                }
+            }
+
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                placeholder = { Text("Buscar packs, comercios…") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                shape = MaterialTheme.shapes.medium,
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+
+            when (val state = packsState) {
+                is PacksUiState.Loading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                is PacksUiState.Error -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(state.message, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+                is PacksUiState.Success -> {
+                    val filtered = state.packs.filter {
+                        searchQuery.isBlank() || it.name.contains(searchQuery, ignoreCase = true)
+                    }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         item {
-                            Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                                Text("No hay packs disponibles cerca", color = Color(0xFF757575))
+                            Text(
+                                "Destacados 🔥",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+                        if (filtered.isEmpty()) {
+                            item {
+                                Box(
+                                    Modifier.fillMaxWidth().padding(32.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("No hay packs disponibles cerca", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        } else {
+                            items(filtered, key = { it.id }) { pack ->
+                                PackCard(pack = pack, onClick = { onPackClick(pack.id) })
                             }
                         }
-                    } else {
-                        items(filtered, key = { it.id }) { pack ->
-                            PackCard(pack = pack, onClick = { onPackClick(pack.id) })
-                        }
+                        item { Spacer(modifier = Modifier.height(80.dp)) }
                     }
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
         }
-    }
 
-    // Tab bar flotante al fondo
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-        ConsumerTabBar(onGoToReservations = onGoToReservations)
+        AprovechaBottomBar(
+            currentRoute = "home_consumer",
+            isCommerce = false,
+            onNavigate = { route ->
+                when (route) {
+                    "my_reservations" -> onGoToReservations()
+                    "favorites" -> onGoToFavorites()
+                    "profile" -> onGoToProfile()
+                }
+            },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -139,90 +154,53 @@ private fun PackCard(pack: FoodPack, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(modifier = Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            // Imagen placeholder con gradiente
             Box(
                 modifier = Modifier
                     .size(72.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Brush.linearGradient(listOf(Color(0xFF2E7D32), Color(0xFF66BB6A)))),
+                    .clip(MaterialTheme.shapes.small)
+                    .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50))),
                 contentAlignment = Alignment.TopEnd
             ) {
                 Surface(
-                    color = Color(0xFFE65100),
-                    shape = RoundedCornerShape(bottomStart = 8.dp),
-                    modifier = Modifier.padding(0.dp)
+                    color = MaterialTheme.colorScheme.tertiary,
+                    shape = RoundedCornerShape(bottomStart = 8.dp)
                 ) {
                     Text(
                         "-$discountPct%",
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onTertiary,
                         modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                     )
                 }
             }
 
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(pack.name, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color(0xFF212121))
-                Text("${pack.quantity} disponibles · ~2.3 km", fontSize = 12.sp, color = Color(0xFF757575))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(pack.name, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text("${pack.quantity} disponibles · ~2.3 km", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         "$${pack.discountPrice.toInt()}",
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        color = Color(0xFF2E7D32)
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         "$${pack.originalPrice.toInt()}",
                         fontSize = 12.sp,
-                        color = Color(0xFFBDBDBD),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textDecoration = TextDecoration.LineThrough
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ConsumerTabBar(onGoToReservations: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shadowElevation = 8.dp,
-        color = Color.White
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            TabItem(label = "INICIO", isActive = true, onClick = {})
-            TabItem(label = "RESERVAS", isActive = false, onClick = onGoToReservations)
-            TabItem(label = "PERFIL", isActive = false, onClick = {})
-        }
-    }
-}
-
-@Composable
-private fun TabItem(label: String, isActive: Boolean, onClick: () -> Unit) {
-    val color = if (isActive) Color(0xFF2E7D32) else Color(0xFF9E9E9E)
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable(onClick = onClick).padding(horizontal = 16.dp, vertical = 4.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .background(if (isActive) Color(0xFF2E7D32) else Color.Transparent)
-                .padding(horizontal = 16.dp, vertical = 6.dp)
-        ) {
-            Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (isActive) Color.White else color)
         }
     }
 }

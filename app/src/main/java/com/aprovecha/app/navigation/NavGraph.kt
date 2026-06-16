@@ -7,7 +7,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.aprovecha.app.feature.auth.ui.LoginScreen
+import com.aprovecha.app.feature.auth.ui.ProfileScreen
 import com.aprovecha.app.feature.auth.ui.RegisterScreen
+import com.aprovecha.app.feature.products.ui.FavoritesScreen
 import com.aprovecha.app.feature.products.ui.HomeConsumerScreen
 import com.aprovecha.app.feature.products.ui.PackDetailScreen
 import com.aprovecha.app.feature.reservations.ui.HomeCommerceScreen
@@ -22,6 +24,8 @@ object Routes {
     const val MY_RESERVATIONS = "my_reservations"
     const val HOME_COMMERCE = "home_commerce"
     const val PUBLISH_PACK = "publish_pack"
+    const val PROFILE = "profile"
+    const val FAVORITES = "favorites"
 
     fun packDetail(packId: Long) = "pack_detail/$packId"
 }
@@ -32,7 +36,6 @@ fun AprovechaNavGraph(navController: NavHostController) {
         navController = navController,
         startDestination = Routes.LOGIN
     ) {
-        // ── Auth ───────────────────────────────────────────────────────────────
         composable(Routes.LOGIN) {
             LoginScreen(
                 onLoginSuccess = { role -> navController.navigateToHomeByRole(role) },
@@ -47,11 +50,23 @@ fun AprovechaNavGraph(navController: NavHostController) {
             )
         }
 
-        // ── Consumer ────────────────────────────────────────────────────────────
+        composable(Routes.PROFILE) {
+            ProfileScreen(
+                onLogout = {
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable(Routes.HOME_CONSUMER) {
             HomeConsumerScreen(
                 onPackClick = { packId -> navController.navigate(Routes.packDetail(packId)) },
-                onGoToReservations = { navController.navigate(Routes.MY_RESERVATIONS) }
+                onGoToReservations = { navController.navigate(Routes.MY_RESERVATIONS) },
+                onGoToFavorites = { navController.navigate(Routes.FAVORITES) },
+                onGoToProfile = { navController.navigate(Routes.PROFILE) }
             )
         }
 
@@ -73,10 +88,17 @@ fun AprovechaNavGraph(navController: NavHostController) {
             )
         }
 
-        // ── Commerce ────────────────────────────────────────────────────────────
+        composable(Routes.FAVORITES) {
+            FavoritesScreen(
+                onPackClick = { packId -> navController.navigate(Routes.packDetail(packId)) },
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable(Routes.HOME_COMMERCE) {
             HomeCommerceScreen(
-                onPublishPack = { navController.navigate(Routes.PUBLISH_PACK) }
+                onPublishPack = { navController.navigate(Routes.PUBLISH_PACK) },
+                onGoToProfile = { navController.navigate(Routes.PROFILE) }
             )
         }
 
