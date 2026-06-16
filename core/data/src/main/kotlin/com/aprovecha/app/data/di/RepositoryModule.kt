@@ -1,9 +1,11 @@
 package com.aprovecha.app.data.di
 
 import com.aprovecha.app.data.repository.AuthRepositoryImpl
+import com.aprovecha.app.data.repository.FavoriteRepositoryImpl
 import com.aprovecha.app.data.repository.PackRepositoryImpl
 import com.aprovecha.app.data.repository.ReservationRepositoryImpl
 import com.aprovecha.app.domain.repository.AuthRepository
+import com.aprovecha.app.domain.repository.FavoriteRepository
 import com.aprovecha.app.domain.repository.PackRepository
 import com.aprovecha.app.domain.repository.ReservationRepository
 import dagger.Binds
@@ -30,4 +32,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindReservationRepository(impl: ReservationRepositoryImpl): ReservationRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFavoriteRepository(impl: FavoriteRepositoryImpl): FavoriteRepository
 }
