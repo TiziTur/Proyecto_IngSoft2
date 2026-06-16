@@ -40,16 +40,29 @@ interface PackDao {
     suspend fun updatePack(pack: PackEntity)
 
     /**
-     * Operación atómica para reservar un pack.
-     * Cambia el estado de AVAILABLE a RESERVED solo si actualmente está AVAILABLE.
+     * Operación atómica para reservar una unidad de un pack.
+     * Decrementa cantidad en 1 y solo pasa a RESERVED cuando llega a 0.
      *
-     * // @REQ-NF01: Garantiza que dos usuarios no reserven el mismo pack
-     * //             simultáneamente — retorna 0 si el pack ya no está disponible.
+     * // @REQ-NF01: Garantiza que dos usuarios no reserven la misma unidad.
      *
-     * @return Número de filas actualizadas: 1 si fue exitoso, 0 si ya fue reservado
+     * @return Número de filas actualizadas: 1 si fue exitoso, 0 si no hay stock
      */
-    @Query("UPDATE packs SET status = 'RESERVED' WHERE id = :packId AND status = 'AVAILABLE'")
-    suspend fun reservePackAtomically(packId: Long): Int
+    @Query("""
+        UPDATE packs SET
+            cantidad = cantidad - :cantidad,
+            status = CASE WHEN cantidad <= :cantidad THEN 'RESERVED' ELSE 'AVAILABLE' END
+        WHERE id = :packId AND status = 'AVAILABLE' AND cantidad >= :cantidad
+    """)
+    suspend fun reservePackAtomically(packId: Long, cantidad: Int): Int
+
+    // Restaura N unidades al pack (al cancelar una reserva)
+    @Query("""
+        UPDATE packs SET
+            cantidad = cantidad + :cantidad,
+            status = 'AVAILABLE'
+        WHERE id = :packId
+    """)
+    suspend fun restorePackUnits(packId: Long, cantidad: Int)
 
     // Actualizar estado de un pack
     @Query("UPDATE packs SET status = :status WHERE id = :packId")

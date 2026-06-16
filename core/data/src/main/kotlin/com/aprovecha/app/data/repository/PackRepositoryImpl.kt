@@ -71,7 +71,9 @@ private fun PackEntity.toDomain() = FoodPack(
     quantity = cantidad,
     photoUrl = fotoUri,
     status = PackStatus.valueOf(status),
-    expirationTime = LocalDateTime.parse(fechaPublicacion)
+    expirationTime = LocalDateTime.parse(fechaPublicacion),
+    retiroDesde = retiroDesde,
+    retiroHasta = retiroHasta
 )
 
 private fun FoodPack.toEntity() = PackEntity(
@@ -84,5 +86,7 @@ private fun FoodPack.toEntity() = PackEntity(
     cantidad = quantity,
     fotoUri = photoUrl,
     status = status.name,
-    fechaPublicacion = expirationTime.toString()
+    fechaPublicacion = expirationTime.toString(),
+    retiroDesde = retiroDesde,
+    retiroHasta = retiroHasta
 )

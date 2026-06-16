@@ -19,7 +19,9 @@ data class FoodPack(
     val photoUrl: String? = null,
     val quantity: Int,
     val status: PackStatus = PackStatus.AVAILABLE,
-    val expirationTime: LocalDateTime = LocalDateTime.now()
+    val expirationTime: LocalDateTime = LocalDateTime.now(),
+    val retiroDesde: String = "",
+    val retiroHasta: String = ""
 ) {
     private companion object {
         const val PERCENT_SCALE = 100

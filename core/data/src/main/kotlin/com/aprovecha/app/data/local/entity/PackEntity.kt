@@ -17,7 +17,7 @@ import androidx.room.PrimaryKey
     tableName = "packs",
     foreignKeys = [
         ForeignKey(
-            entity = CommerceEntity::class,
+            entity = UserEntity::class,
             parentColumns = ["id"],
             childColumns = ["commerceId"],
             onDelete = ForeignKey.CASCADE
@@ -38,5 +38,7 @@ data class PackEntity(
     val cantidad: Int,
     /** Estado del pack: "AVAILABLE", "RESERVED", "WITHDRAWN", "CANCELLED" */
     val status: String = "AVAILABLE",
-    val fechaPublicacion: String // ISO-8601 LocalDateTime
+    val fechaPublicacion: String, // ISO-8601 LocalDateTime
+    val retiroDesde: String = "",
+    val retiroHasta: String = ""
 )

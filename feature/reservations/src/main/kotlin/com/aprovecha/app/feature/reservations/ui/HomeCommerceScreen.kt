@@ -21,9 +21,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.aprovecha.app.domain.model.FoodPack
 import com.aprovecha.app.domain.model.PackStatus
-import com.aprovecha.app.ui.components.AprovechaBottomBar
 import com.aprovecha.app.ui.theme.Bosque50
 
 // @REQ-F02: Home del comercio — ver packs publicados y estadísticas
@@ -31,8 +33,6 @@ import com.aprovecha.app.ui.theme.Bosque50
 @Composable
 fun HomeCommerceScreen(
     onPublishPack: () -> Unit,
-    onGoToProfile: () -> Unit,
-    onGoToPendingReservations: () -> Unit,
     viewModel: ReservationsViewModel = hiltViewModel()
 ) {
     val packsState by viewModel.commercePacksState.collectAsState()
@@ -43,8 +43,7 @@ fun HomeCommerceScreen(
         viewModel.loadPendingReservations()
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -132,19 +131,6 @@ fun HomeCommerceScreen(
                     }
                 }
             }
-        }
-
-        AprovechaBottomBar(
-            currentRoute = "home_commerce",
-            isCommerce = true,
-            onNavigate = { route ->
-                when (route) {
-                    "profile" -> onGoToProfile()
-                    "pending_reservations" -> onGoToPendingReservations()
-                }
-            },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 
@@ -188,13 +174,28 @@ private fun CommercePackCard(pack: FoodPack) {
             Box(
                 modifier = Modifier
                     .size(56.dp)
-                    .background(
-                        Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50)),
-                        RoundedCornerShape(12.dp)
-                    ),
+                    .clip(RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🍞", fontSize = 24.sp)
+                if (pack.photoUrl != null) {
+                    AsyncImage(
+                        model = pack.photoUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50))
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🍞", fontSize = 24.sp)
+                    }
+                }
             }
 
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {

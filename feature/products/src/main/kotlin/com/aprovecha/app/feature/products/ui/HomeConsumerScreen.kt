@@ -23,8 +23,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.aprovecha.app.domain.model.FoodPack
-import com.aprovecha.app.ui.components.AprovechaBottomBar
 import com.aprovecha.app.ui.theme.Bosque50
 
 // @REQ-F03: Home del consumidor — lista de packs cercanos
@@ -32,16 +33,12 @@ import com.aprovecha.app.ui.theme.Bosque50
 @Composable
 fun HomeConsumerScreen(
     onPackClick: (packId: Long) -> Unit,
-    onGoToReservations: () -> Unit,
-    onGoToFavorites: () -> Unit,
-    onGoToProfile: () -> Unit,
     viewModel: ProductsViewModel = hiltViewModel()
 ) {
     val packsState by viewModel.packsState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -129,20 +126,6 @@ fun HomeConsumerScreen(
                     }
                 }
             }
-        }
-
-        AprovechaBottomBar(
-            currentRoute = "home_consumer",
-            isCommerce = false,
-            onNavigate = { route ->
-                when (route) {
-                    "my_reservations" -> onGoToReservations()
-                    "favorites" -> onGoToFavorites()
-                    "profile" -> onGoToProfile()
-                }
-            },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
 }
 
@@ -162,10 +145,23 @@ internal fun PackCard(pack: FoodPack, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(72.dp)
-                    .clip(MaterialTheme.shapes.small)
-                    .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50))),
+                    .clip(MaterialTheme.shapes.small),
                 contentAlignment = Alignment.TopEnd
             ) {
+                if (pack.photoUrl != null) {
+                    AsyncImage(
+                        model = pack.photoUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50)))
+                    )
+                }
                 Surface(
                     color = MaterialTheme.colorScheme.tertiary,
                     shape = RoundedCornerShape(bottomStart = 8.dp)

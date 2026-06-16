@@ -27,15 +27,16 @@ class ReservationRepositoryImpl @Inject constructor(
     }
 
     // @REQ-F04 + @REQ-NF01
-    override suspend fun createReservation(packId: Long, userId: Long): Result<Reservation> = try {
+    override suspend fun createReservation(packId: Long, userId: Long, cantidad: Int): Result<Reservation> = try {
         val now = LocalDateTime.now().toString()
-        val rowsAffected = packDao.reservePackAtomically(packId)
+        val rowsAffected = packDao.reservePackAtomically(packId, cantidad)
         if (rowsAffected == 0) {
-            Result.Error(IllegalStateException("Pack ya reservado (REQ-NF01)"))
+            Result.Error(IllegalStateException("Stock insuficiente para reservar $cantidad unidades"))
         } else {
             val entity = ReservationEntity(
                 packId = packId,
                 userId = userId,
+                cantidad = cantidad,
                 status = ReservationStatus.RESERVED.name,
                 fechaReserva = now,
                 fechaActualizacion = now
@@ -63,7 +64,7 @@ class ReservationRepositoryImpl @Inject constructor(
         }
     }
 
-    // @REQ-F06: RESERVED → CANCELLED (libre hasta antes del retiro)
+    // @REQ-F06: RESERVED → CANCELLED + restaura una unidad al pack
     override suspend fun cancelReservation(reservationId: Long): Result<Reservation> {
         return try {
             val entity = reservationDao.getReservationById(reservationId)
@@ -73,6 +74,7 @@ class ReservationRepositoryImpl @Inject constructor(
             }
             val now = LocalDateTime.now().toString()
             reservationDao.cancelReservation(reservationId, now)
+            packDao.restorePackUnits(entity.packId, entity.cantidad)
             Result.Success(entity.copy(status = ReservationStatus.CANCELLED.name, fechaActualizacion = now).toDomain())
         } catch (e: Exception) {
             Result.Error(e)
@@ -80,7 +82,12 @@ class ReservationRepositoryImpl @Inject constructor(
     }
 
     override fun getReservationsByUser(userId: Long): Flow<List<Reservation>> =
-        reservationDao.getReservationsByUser(userId).map { list -> list.map { it.toDomain() } }
+        reservationDao.getReservationsByUser(userId).map { list ->
+            list.map { entity ->
+                val pack = packDao.getPackById(entity.packId)
+                entity.toDomain(packName = pack?.nombre, packPhotoUrl = pack?.fotoUri)
+            }
+        }
 
     override fun getReservationsByCommerce(commerceId: Long): Flow<List<Reservation>> =
         reservationDao.getReservationsByCommerce(commerceId).map { list -> list.map { it.toDomain() } }
@@ -94,10 +101,16 @@ class ReservationRepositoryImpl @Inject constructor(
     }
 }
 
-private fun ReservationEntity.toDomain() = Reservation(
+private fun ReservationEntity.toDomain(
+    packName: String? = null,
+    packPhotoUrl: String? = null
+) = Reservation(
     id = id,
     packId = packId,
+    packName = packName ?: "Pack #$packId",
+    packPhotoUrl = packPhotoUrl,
     userId = userId,
+    cantidad = cantidad,
     status = ReservationStatus.valueOf(status),
     fechaReserva = LocalDateTime.parse(fechaReserva),
     fechaActualizacion = LocalDateTime.parse(fechaActualizacion)

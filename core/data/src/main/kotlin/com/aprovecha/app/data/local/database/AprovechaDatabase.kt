@@ -20,7 +20,7 @@ import com.aprovecha.app.data.local.entity.UserEntity
         ReservationEntity::class,
         FavoriteEntity::class
     ],
-    version = 2,
+    version = 5,
     exportSchema = true
 )
 abstract class AprovechaDatabase : RoomDatabase() {

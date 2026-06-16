@@ -75,7 +75,8 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp),
+                .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 0.dp)
+                .navigationBarsPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             user?.let { u ->
@@ -132,6 +133,7 @@ fun ProfileScreen(
             ) {
                 Text("Cerrar sesión", fontWeight = FontWeight.Bold)
             }
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }
