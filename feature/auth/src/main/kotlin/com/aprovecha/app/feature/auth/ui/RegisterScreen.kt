@@ -7,7 +7,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -188,7 +190,7 @@ private fun RegisterForm(
         )
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
             horizontalArrangement = Arrangement.spacedBy(RegisterScreenTokens.RoleSpacing)
         ) {
             RoleCard(
@@ -200,18 +202,18 @@ private fun RegisterForm(
                     onClick = { onRoleSelected(UserRole.CONSUMER) }
                 ),
                 selected = selectedRole == UserRole.CONSUMER,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).fillMaxHeight()
             )
             RoleCard(
                 option = RoleOption(
                     icon = Icons.Default.Storefront,
                     title = "Comercio",
                     subtitle = "Publico mis excedentes",
-                    selectedColor = MaterialTheme.colorScheme.tertiary,
+                    selectedColor = MaterialTheme.colorScheme.primary,
                     onClick = { onRoleSelected(UserRole.COMMERCE) }
                 ),
                 selected = selectedRole == UserRole.COMMERCE,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).fillMaxHeight()
             )
         }
 

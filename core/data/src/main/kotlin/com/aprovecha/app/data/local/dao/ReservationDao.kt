@@ -40,12 +40,11 @@ interface ReservationDao {
     @Query("SELECT * FROM reservations WHERE userId = :userId ORDER BY fechaReserva DESC")
     fun getReservationsByUser(userId: Long): Flow<List<ReservationEntity>>
 
-    // Obtener reservas de los packs de un comercio (JOIN con packs)
+    // Obtener reservas de los packs de un comercio
     @Query("""
         SELECT r.* FROM reservations r
         INNER JOIN packs p ON r.packId = p.id
-        INNER JOIN commerces c ON p.commerceId = c.id
-        WHERE c.id = :commerceId
+        WHERE p.commerceId = :commerceId
         ORDER BY r.fechaReserva DESC
     """)
     fun getReservationsByCommerce(commerceId: Long): Flow<List<ReservationEntity>>

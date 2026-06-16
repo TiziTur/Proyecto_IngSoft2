@@ -36,6 +36,7 @@ data class ReservationEntity(
     val id: Long = 0,
     val packId: Long,
     val userId: Long,
+    val cantidad: Int = 1,
     /** Estado: "RESERVED", "WITHDRAWN", "CANCELLED" */
     val status: String = "RESERVED",
     val fechaReserva: String,    // ISO-8601 LocalDateTime

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.Flow
 interface ReservationRepository {
 
     // @REQ-F04: Crear una reserva — debe ser atómica (REQ-NF01)
-    suspend fun createReservation(packId: Long, userId: Long): Result<Reservation>
+    suspend fun createReservation(packId: Long, userId: Long, cantidad: Int = 1): Result<Reservation>
 
     // @REQ-F05: El comercio marca la reserva como "retirada"
     suspend fun markAsWithdrawn(reservationId: Long): Result<Reservation>

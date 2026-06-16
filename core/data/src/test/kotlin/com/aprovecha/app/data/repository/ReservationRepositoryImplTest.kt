@@ -63,7 +63,7 @@ class ReservationRepositoryImplTest {
      */
     @Test
     fun `Given available pack When createReservation called Then returns Success with RESERVED status`() = runTest {
-        coEvery { packDao.reservePackAtomically(1L) } returns 1
+        coEvery { packDao.reservePackAtomically(1L, 1) } returns 1
         coEvery { reservationDao.insertReservation(any()) } returns 1L
 
         val result = repository.createReservation(packId = 1L, userId = 42L)
@@ -82,13 +82,13 @@ class ReservationRepositoryImplTest {
      */
     @Test
     fun `Given pack already reserved When createReservation called Then returns Error`() = runTest {
-        coEvery { packDao.reservePackAtomically(1L) } returns 0
+        coEvery { packDao.reservePackAtomically(1L, 1) } returns 0
 
         val result = repository.createReservation(packId = 1L, userId = 99L)
 
         assertTrue(result is Result.Error)
         val error = (result as Result.Error).exception
-        assertTrue(error.message!!.contains("REQ-NF01"))
+        assertTrue(error is IllegalStateException)
     }
 
     /**
@@ -98,7 +98,7 @@ class ReservationRepositoryImplTest {
      */
     @Test
     fun `Given DAO throws When createReservation called Then returns Result Error`() = runTest {
-        coEvery { packDao.reservePackAtomically(any()) } throws RuntimeException("DB error")
+        coEvery { packDao.reservePackAtomically(any(), any()) } throws RuntimeException("DB error")
 
         val result = repository.createReservation(packId = 1L, userId = 1L)
 
@@ -112,12 +112,12 @@ class ReservationRepositoryImplTest {
      */
     @Test
     fun `Given successful reservation When verifying DAO calls Then both DAOs called once`() = runTest {
-        coEvery { packDao.reservePackAtomically(1L) } returns 1
+        coEvery { packDao.reservePackAtomically(1L, 1) } returns 1
         coEvery { reservationDao.insertReservation(any()) } returns 1L
 
         repository.createReservation(packId = 1L, userId = 42L)
 
-        coVerify(exactly = 1) { packDao.reservePackAtomically(1L) }
+        coVerify(exactly = 1) { packDao.reservePackAtomically(1L, 1) }
         coVerify(exactly = 1) { reservationDao.insertReservation(any()) }
     }
 
@@ -184,6 +184,7 @@ class ReservationRepositoryImplTest {
         val entity = buildReservationEntity(status = "RESERVED")
         coEvery { reservationDao.getReservationById(1L) } returns entity
         coEvery { reservationDao.cancelReservation(1L, any()) } returns 1
+        coEvery { packDao.restorePackUnits(any(), any()) } returns Unit
 
         val result = repository.cancelReservation(reservationId = 1L)
 
@@ -237,6 +238,7 @@ class ReservationRepositoryImplTest {
             buildReservationEntity(id = 2L, userId = 42L)
         )
         every { reservationDao.getReservationsByUser(42L) } returns flowOf(entities)
+        coEvery { packDao.getPackById(any()) } returns null
 
         val result = repository.getReservationsByUser(42L).first()
 

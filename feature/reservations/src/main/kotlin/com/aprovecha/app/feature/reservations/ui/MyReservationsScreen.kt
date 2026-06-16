@@ -21,6 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.aprovecha.app.domain.model.Reservation
 import com.aprovecha.app.domain.model.ReservationStatus
 import com.aprovecha.app.ui.theme.Bosque50
@@ -228,13 +231,28 @@ private fun ReservationCard(reservation: Reservation, onCancel: () -> Unit) {
             Box(
                 modifier = Modifier
                     .size(56.dp)
-                    .background(
-                        Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50)),
-                        RoundedCornerShape(12.dp)
-                    ),
+                    .clip(RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🛒", fontSize = 24.sp)
+                if (reservation.packPhotoUrl != null) {
+                    AsyncImage(
+                        model = reservation.packPhotoUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Bosque50))
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🛒", fontSize = 24.sp)
+                    }
+                }
             }
 
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
@@ -243,7 +261,7 @@ private fun ReservationCard(reservation: Reservation, onCancel: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Pack #${reservation.packId}",
+                        reservation.packName,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 15.sp
                     )

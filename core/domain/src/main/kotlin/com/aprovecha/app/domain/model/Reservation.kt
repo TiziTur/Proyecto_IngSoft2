@@ -20,7 +20,10 @@ import java.time.LocalDateTime
 data class Reservation(
     val id: Long = 0,
     val packId: Long,
+    val packName: String = "",
+    val packPhotoUrl: String? = null,
     val userId: Long,
+    val cantidad: Int = 1,
     val status: ReservationStatus = ReservationStatus.RESERVED,
     val fechaReserva: LocalDateTime = LocalDateTime.now(),
     val fechaActualizacion: LocalDateTime = LocalDateTime.now()

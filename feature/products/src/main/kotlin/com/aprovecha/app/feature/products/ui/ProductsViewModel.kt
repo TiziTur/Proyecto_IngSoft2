@@ -95,7 +95,7 @@ class ProductsViewModel @Inject constructor(
         }
     }
 
-    fun reservePack(packId: Long) {
+    fun reservePack(packId: Long, cantidad: Int = 1) {
         viewModelScope.launch {
             val userId = authRepository.getCurrentUser()?.id
             if (userId == null) {
@@ -103,7 +103,7 @@ class ProductsViewModel @Inject constructor(
                 return@launch
             }
             _reserveState.value = ReserveUiState.Loading
-            _reserveState.value = when (val result = reservationRepository.createReservation(packId, userId)) {
+            _reserveState.value = when (val result = reservationRepository.createReservation(packId, userId, cantidad)) {
                 is Result.Success -> ReserveUiState.Success
                 is Result.Error -> ReserveUiState.Error(result.exception.message ?: "Error al reservar")
                 else -> ReserveUiState.Error("Error inesperado")
