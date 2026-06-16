@@ -1,7 +1,7 @@
 # Matriz de Trazabilidad de Requerimientos (RTM)
 ## Proyecto: Aprovecha! — Sistema de Gestión de Rescate de Alimentos
 ### Grupo: Gang of Four | Materia: Ingeniería de Software II — IUA
-### Versión: 3.0 | Fecha: Junio 2026 | Referencia: IEEE 730 §7
+### Versión: 3.1 | Fecha: Junio 2026 | Referencia: IEEE 730 §7
 
 ---
 
@@ -211,7 +211,10 @@
 | `ProductsViewModelTest.kt` | REQ-F03 | `Given invalid packId When loadPackDetail fails Then selectedPack remains null` | ✅ |
 | `ProductsViewModelTest.kt` | REQ-F04 | `Given successful reservation When reservePack called Then reserveState emits Success` | ✅ |
 | `ProductsViewModelTest.kt` | REQ-F04 | `Given pack unavailable When reservePack fails Then reserveState emits Error` | ✅ |
+| `ProductsViewModelTest.kt` | REQ-F04 | `Given no session When reservePack called Then reserveState emits Error` | ✅ |
 | `ProductsViewModelTest.kt` | REQ-F04 | `Given Success state When resetReserveState called Then state returns to Idle` | ✅ |
+| `ProductsViewModelTest.kt` | REQ-F07 | `Given active session When toggleFavorite called Then favoriteRepository toggleFavorite is invoked` | ✅ |
+| `ProductsViewModelTest.kt` | REQ-F07 | `Given no session When toggleFavorite called Then favoriteRepository is not invoked` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F06 | `Given user has reservations When loadUserReservations called Then state emits Success` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F06 | `Given repository throws When loadUserReservations fails Then state emits Error` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F06 | `Given no session When loadUserReservations called Then state emits Error` | ✅ |
@@ -264,7 +267,8 @@ REQ-F06 → CancelReservationUseCase / ReservationsViewModel
           + ReservationsViewModelTest (3 tests REQ-F06)                          ✅
 
 REQ-F07 → FavoriteRepository / FavoriteRepositoryImpl / ProductsViewModel
-          → FavoriteRepositoryImplTest (4 tests)                                ✅
+          → FavoriteRepositoryImplTest (4 tests)
+          + ProductsViewModelTest (2 tests REQ-F07)                             ✅
 
 REQ-NF01→ PackDao.reservePackAtomically() (Room @Transaction)
           → ReservePackUseCaseTest (1) + ReservationConcurrencyTest (2)
@@ -273,20 +277,20 @@ REQ-NF01→ PackDao.reservePackAtomically() (Room @Transaction)
 REQ-NF02→ ProGuard/R8 en release build                                          ⚠️ Parcial
 ```
 
-**Total de tests implementados: 118**
+**Total de tests implementados: 121**
 
 | Módulo | Tests |
 |--------|-------|
 | `core:domain` | 32 |
 | `core:data` | 46 |
 | `feature:auth` | 15 |
-| `feature:products` | 7 |
+| `feature:products` | 10 |
 | `feature:reservations` | 18 |
-| **Total** | **118** |
+| **Total** | **121** |
 
 **Cobertura JaCoCo (último build):** INSTRUCTION=84.73% / BRANCH=80.41% — supera umbral IEEE 730 §5.3 (70%/60%)
 
 ---
 
-*Última actualización: Junio 2026 — Versión 3.0*
+*Última actualización: 16 Junio 2026 — Versión 3.1 (3 tests de ProductsViewModelTest incorporados: toggleFavorite×2 + noSession reservePack; total 121)*
 *Mantener sincronizado con cada merge a main.*

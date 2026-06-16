@@ -93,7 +93,7 @@ cd Proyecto_IngSoft2
 
 ## Tests
 
-El proyecto tiene **118 tests unitarios** distribuidos en 5 módulos:
+El proyecto tiene **121 tests unitarios** distribuidos en 5 módulos:
 
 ```bash
 # Ejecutar todos los tests
@@ -123,7 +123,7 @@ El proyecto tiene **118 tests unitarios** distribuidos en 5 módulos:
 | `core:data` | `SessionManagerTest` | 4 |
 | `feature:auth` | `AuthViewModelTest` | 12 |
 | `feature:auth` | `ProfileViewModelTest` | 3 |
-| `feature:products` | `ProductsViewModelTest` | 7 |
+| `feature:products` | `ProductsViewModelTest` | 10 |
 | `feature:reservations` | `ReservationsViewModelTest` | 18 |
 
 ---
@@ -165,7 +165,8 @@ Artefactos generados: reporte Detekt HTML, reporte JaCoCo HTML/XML
 |-----------|-------------|
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Arquitectura, módulos, stack y comandos |
 | [RTM_Aprovecha.md](./RTM_Aprovecha.md) | Matriz de trazabilidad requerimientos ↔ código ↔ tests |
-| [SQA_Plan_Aprovecha.docx](./SQA_Plan_Aprovecha.docx) | Plan SQA completo (IEEE 730) |
+| [SQA_Plan_Aprovecha.md](./SQA_Plan_Aprovecha.md) | Plan SQA completo v2.0 (IEEE 730) — incluye métricas finales |
+| [SQA_Plan_Aprovecha.docx](./SQA_Plan_Aprovecha.docx) | Plan SQA v1.0 original (Word) |
 | [docs/testing/plan-de-pruebas.md](./docs/testing/plan-de-pruebas.md) | Plan de pruebas (IEEE 829) |
 | [docs/testing/casos-de-prueba.md](./docs/testing/casos-de-prueba.md) | 16 casos documentados (caja negra + blanca) |
 | [docs/testing/reporte-defectos.md](./docs/testing/reporte-defectos.md) | 6 defectos reportados (1 resuelto) |
@@ -173,6 +174,23 @@ Artefactos generados: reporte Detekt HTML, reporte JaCoCo HTML/XML
 | [docs/reflexion-final.md](./docs/reflexion-final.md) | Reflexión final del equipo — Hito 5 |
 | [QUICK_START.md](./QUICK_START.md) | Guía rápida para nuevos desarrolladores |
 | [REFERENCES.md](./REFERENCES.md) | Referencias y recursos útiles |
+
+---
+
+## Métricas Finales
+
+| Métrica | Valor |
+|---------|-------|
+| LOC total (Detekt) | 5,960 |
+| SLOC total | 4,159 |
+| CC máxima por función | ≤ 10 (umbral CI) |
+| Code Smells (Detekt) | 0 |
+| Cobertura instrucciones (JaCoCo) | 84.73% |
+| Cobertura ramas (JaCoCo) | 80.41% |
+| Tests automatizados | 121 |
+| Defectos reportados | 6 (1 resuelto) |
+
+Ver métricas detalladas por módulo en [docs/testing/plan-de-pruebas.md §9](./docs/testing/plan-de-pruebas.md).
 
 ---
 

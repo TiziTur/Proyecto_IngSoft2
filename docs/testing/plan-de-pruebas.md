@@ -84,7 +84,7 @@ Este documento describe el plan de pruebas para el sistema **Aprovecha**, una ap
 - Todos los tests automatizados pasan (BUILD SUCCESSFUL) ✅
 - Cobertura de instrucciones ≥ 70% en módulos principales ✅ (84.73% global)
 - Cobertura de ramas ≥ 60% en módulos principales ✅ (80.41% global)
-- Al menos 15 casos de prueba documentados (caja negra + caja blanca) ✅ (16 casos en casos-de-prueba.md)
+- Al menos 15 casos de prueba documentados (caja negra + caja blanca) ✅ (16 casos en casos-de-prueba.md, 121 tests automatizados)
 - Al menos 5 defectos formalmente reportados ✅ (6 defectos, 1 resuelto)
 
 ### 4.3 Criterios de cobertura (IEEE 730 §5.3)
@@ -126,15 +126,15 @@ feature/auth/src/test/
                                              Subtotal: 15 tests
 
 feature/products/src/test/
-  └── ProductsViewModelTest.kt              (7 tests  — REQ-F03, REQ-F04)
-                                             Subtotal: 7 tests
+  └── ProductsViewModelTest.kt              (10 tests — REQ-F03, REQ-F04, REQ-F07)
+                                             Subtotal: 10 tests
 
 feature/reservations/src/test/
   └── ReservationsViewModelTest.kt          (18 tests — REQ-F02, REQ-F05, REQ-F06, sesión)
                                              Subtotal: 18 tests
 ```
 
-**Total: 118 tests automatizados**
+**Total: 121 tests automatizados**
 
 ---
 
@@ -181,6 +181,62 @@ feature/reservations/src/test/
 | Documentación de casos de prueba | ✅ Completado (16 casos) |
 | Reporte de defectos | ✅ Completado (6 defectos, 1 resuelto) |
 | Tests de SessionManager (REQ-F01 sesión) | ✅ Completado (SessionManagerTest + AuthRepositoryImplTest) |
-| Tests de Favoritos (REQ-F07) | ✅ Completado (FavoriteRepositoryImplTest) |
+| Tests de Favoritos (REQ-F07) | ✅ Completado (FavoriteRepositoryImplTest + ProductsViewModelTest) |
 | Tests de Perfil/Logout | ✅ Completado (ProfileViewModelTest) |
 | Tests de Reservas Pendientes | ✅ Completado (ReservationsViewModelTest expandido) |
+
+---
+
+## 9. Métricas Finales (IEEE 730 §5.3)
+
+### 9.1 Líneas de Código (LOC) y Complejidad Ciclomática (CC)
+
+Obtenidas de los reportes Detekt (`build/reports/detekt/`) del último build (`./gradlew detekt`):
+
+| Módulo | LOC | SLOC | CC Total | Code Smells |
+|--------|-----|------|----------|-------------|
+| `:app` | 241 | 199 | 7 | 0 |
+| `:core:common` | 53 | 21 | 1 | 0 |
+| `:core:domain` | 1,455 | 750 | 77 | 0 |
+| `:core:data` | 1,447 | 905 | 115 | 0 |
+| `:feature:auth` | 876 | 740 | 52 | 0 |
+| `:feature:products` | 848 | 699 | 47 | 0 |
+| `:feature:reservations` | 1,040 | 845 | 83 | 0 |
+| **TOTAL** | **5,960** | **4,159** | **382** | **0** |
+
+- **LOC**: líneas totales (incluye comentarios y espacios en blanco).
+- **SLOC**: líneas de código fuente (sin comentarios ni líneas en blanco).
+- **CC (mcc)**: complejidad ciclomática total del módulo (suma de todas las funciones). Umbral por función: ≤ 10 (configurado en Detekt, el CI falla si se supera).
+- **Code Smells**: 0 — ningún issue crítico detectado por Detekt 1.23.8.
+
+### 9.2 Maintainability Index (MI)
+
+Detekt no provee MI directamente. Los indicadores equivalentes disponibles son:
+
+| Indicador | Valor | Estado |
+|-----------|-------|--------|
+| CC máxima por función | ≤ 10 (umbral Detekt) | ✅ 0 violaciones |
+| Code smells (todos los módulos) | 0 | ✅ Limpio |
+| Complejidad cognitiva global | 190 | ✅ Bajo por función |
+
+El MI es **alto** según los criterios IEEE 730 §5.3: CC ≤ 10 por función, sin deuda técnica activa detectada por análisis estático, 0 code smells en todos los módulos.
+
+### 9.3 Cobertura de Código (JaCoCo)
+
+| Métrica | Resultado | Umbral IEEE 730 §5.3 | Estado |
+|---------|-----------|----------------------|--------|
+| Instrucciones (INSTRUCTION) | **84.73%** | ≥ 70% | ✅ Supera |
+| Ramas (BRANCH) | **80.41%** | ≥ 60% | ✅ Supera |
+
+Ver `build/reports/jacoco/jacoco-summary.md` para el detalle por módulo.
+
+### 9.4 Resumen de Defectos
+
+| Severidad | Total | Resueltos | Abiertos |
+|-----------|-------|-----------|----------|
+| Alta | 2 | 1 (DEF-003) | 1 (DEF-001) |
+| Media | 3 | 0 | 3 (DEF-002, DEF-004, DEF-006) |
+| Baja | 1 | 0 | 1 (DEF-005) |
+| **Total** | **6** | **1** | **5** |
+
+Densidad de defectos: 6 defectos / 4.159 KLOC ≈ **1.44 defectos/KLOC** (dentro del umbral aceptable para MVP académico).

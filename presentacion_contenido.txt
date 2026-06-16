@@ -1,0 +1,992 @@
+============================================================
+    APROVECHA! — CONTENIDO PARA PRESENTACIÓN FINAL
+    Ingeniería de Software II — IUA
+    Grupo: Gang of Four
+============================================================
+
+Nota de uso: Este documento describe QUÉ decir en cada diapositiva,
+QUÉ mostrar visualmente, y explica los términos técnicos cuando aparecen.
+Los "[GRÁFICO]" indican qué insertar en la diapositiva.
+
+==============================================================
+SECCIÓN 1: APERTURA
+==============================================================
+
+--------------------------------------------------------------
+DIAPOSITIVA 1 — PORTADA
+--------------------------------------------------------------
+[GRÁFICO]: Logo de la app (ícono verde), nombre "Aprovecha!",
+           subtítulo "Sistema de Rescate Alimentario",
+           materia y fecha.
+
+QUÉ DECIR:
+"Buenas tardes. Hoy les presentamos Aprovecha!, nuestra aplicación Android
+desarrollada durante el cuatrimestre para la materia Ingeniería de Software II.
+Somos el grupo Gang of Four."
+
+NOTA: No explicar demasiado en esta diapositiva; guardar los detalles para
+las siguientes. Solo presentarse y dar contexto general.
+
+--------------------------------------------------------------
+DIAPOSITIVA 2 — INTEGRANTES DEL EQUIPO
+--------------------------------------------------------------
+[GRÁFICO]: Foto o avatar de cada integrante con nombre y rol asignado
+           (ej: "Backend", "Testing", "UX", "Arquitectura").
+
+QUÉ DECIR:
+"Somos [nombres del equipo]. Adoptamos el nombre 'Gang of Four' en referencia
+al famoso libro de patrones de diseño de software, los cuatro autores que
+definieron muchos de los patrones que usamos hoy en día."
+
+--------------------------------------------------------------
+DIAPOSITIVA 3 — EL PROBLEMA
+--------------------------------------------------------------
+[GRÁFICO]: Una imagen impactante: comida tirada a la basura. Estadística:
+           "1/3 de los alimentos producidos en el mundo se desperdicia"
+           (dato FAO). O bien un dato local de Argentina.
+
+QUÉ DECIR:
+"El problema que atacamos es el desperdicio alimentario. Cada día, los
+comercios —panaderías, verdulerías, restaurantes— terminan su jornada con
+excedente de comida en buen estado que no pueden vender: les queda demasiado
+para el próximo día y terminan tirándolo.
+
+Al mismo tiempo, hay consumidores dispuestos a comprar esos mismos productos
+a precio reducido, pero no tienen cómo enterarse de que están disponibles.
+
+Esa es la brecha que Aprovecha! viene a cerrar."
+
+--------------------------------------------------------------
+DIAPOSITIVA 4 — LA SOLUCIÓN
+--------------------------------------------------------------
+[GRÁFICO]: Diagrama de dos actores:
+           COMERCIO → publica packs → APP → consumidor los ve y reserva → CONSUMIDOR
+           Con flechas y un ícono de teléfono en el medio.
+
+QUÉ DECIR:
+"Aprovecha! conecta en tiempo real a dos actores: el comercio y el consumidor.
+
+El COMERCIO publica 'packs de rescate': un conjunto de productos con descuento
+que deben retirarse ese mismo día en una franja horaria determinada. No pierden
+dinero y reducen su desperdicio.
+
+El CONSUMIDOR ve los packs disponibles cerca suyo, elige uno, lo reserva con
+un toque, y lo retira en el local. Ahorra dinero y contribuye a la reducción
+del desperdicio.
+
+Nuestra app está desarrollada 100% en Android nativo con Kotlin y Jetpack Compose."
+
+TÉRMINO A EXPLICAR — Jetpack Compose:
+"Es el toolkit moderno de Google para construir interfaces de usuario en Android.
+En lugar de diseñar pantallas en archivos XML como se hacía antes, la UI se
+escribe directamente en código Kotlin de forma declarativa: describimos cómo
+debe verse la pantalla y el sistema se encarga de actualizarla automáticamente
+cuando cambian los datos."
+
+--------------------------------------------------------------
+DIAPOSITIVA 5 — TECNOLOGÍAS Y ARQUITECTURA
+--------------------------------------------------------------
+[GRÁFICO]: Diagrama de capas (pirámide o columnas):
+           - Capa UI: Jetpack Compose, Navigation
+           - Capa ViewModel: MVVM
+           - Capa Domain: Clean Architecture (Use Cases)
+           - Capa Data: Room, DataStore, Repositories
+           - Capa DI: Hilt
+           Debajo: Módulos Gradle (core:domain, core:data, feature:auth, etc.)
+
+QUÉ DECIR:
+"La arquitectura del proyecto sigue el patrón MVVM con Clean Architecture,
+organizado en 8 módulos Gradle independientes.
+
+MVVM significa Model-View-ViewModel: la UI (View) solo muestra datos, el
+ViewModel los prepara y expone, y el Model (capas de dominio y datos)
+contiene toda la lógica de negocio.
+
+Clean Architecture agrega una separación estricta por capas: la capa de dominio
+no sabe nada de Android ni de bases de datos, solo define qué puede hacer el sistema.
+Esto hace que sea mucho más fácil de testear y de mantener.
+
+Para la base de datos local usamos Room (una librería de Google que simplifica
+SQLite en Android) y para la sesión usamos DataStore (el reemplazo moderno de
+SharedPreferences, también de Google).
+
+La inyección de dependencias la maneja Hilt, que permite que cada clase reciba
+lo que necesita sin tener que instanciarlo manualmente."
+
+TÉRMINO A EXPLICAR — Inyección de dependencias (DI):
+"En lugar de que una clase cree sus propias dependencias (por ejemplo,
+que el ViewModel cree su propio repositorio), un contenedor externo (Hilt)
+las provee. Esto facilita el testing porque en los tests podemos reemplazar
+las dependencias reales por versiones simuladas (mocks)."
+
+
+==============================================================
+SECCIÓN 2: DEMO EN VIVO
+==============================================================
+
+--------------------------------------------------------------
+DIAPOSITIVA 6 — DEMO EN VIVO: FLUJO CONSUMIDOR
+--------------------------------------------------------------
+[GRÁFICO]: Capturas de pantalla de la app EN LA DIAPOSITIVA como respaldo
+           por si la demo falla:
+           - Login screen
+           - HomeConsumerScreen (feed de packs)
+           - PackDetailScreen con el checkbox
+           - MyReservationsScreen con filtros
+
+QUÉ DECIR:
+"Vamos a mostrar el sistema en funcionamiento. Voy a recorrer el flujo
+completo desde el punto de vista del consumidor.
+
+[Mostrar en el dispositivo o emulador:]
+1. Registro y login con email y contraseña.
+2. Una vez logueado, veo el feed de 'packs de rescate' disponibles.
+   Cada tarjeta muestra el nombre, el descuento, el precio original tachado,
+   el precio con descuento, y la distancia aproximada.
+3. Toco un pack para ver el detalle. Acá tengo más información: descripción,
+   comercio, precio total, y un campo clave: debo aceptar la franja horaria
+   de retiro antes de poder reservar. El botón 'Reservar' está deshabilitado
+   hasta que tildo ese checkbox.
+4. Una vez reservado, puedo ver mis reservas activas. Puedo filtrarlas por
+   TODOS / RETIRADOS / CANCELADOS.
+5. También puedo marcar packs como favoritos con el ícono de corazón.
+
+[Mostrar flujo comercio:]
+6. Con un usuario de rol COMERCIO, puedo publicar un nuevo pack, ver las
+   reservas pendientes de retiro, y marcar una reserva como retirada cuando
+   el cliente pasa a buscarla."
+
+--------------------------------------------------------------
+DIAPOSITIVA 7 — FLUJO COMPLETO: DIAGRAMA DE ESTADOS
+--------------------------------------------------------------
+[GRÁFICO]: Diagrama de estados de un pack / reserva:
+
+           PACK: AVAILABLE → RESERVED → WITHDRAWN
+                                 ↓
+                            CANCELLED
+
+QUÉ DECIR:
+"El flujo de negocio central se resume en esta máquina de estados.
+Un pack comienza AVAILABLE. Cuando un consumidor lo reserva, pasa a RESERVED.
+Desde RESERVED tiene dos caminos: o el consumidor lo retira y el comercio lo
+marca como WITHDRAWN (retirado), o el consumidor cancela y pasa a CANCELLED.
+No se puede cancelar algo que ya fue retirado. Esta lógica está implementada
+y testeada de forma exhaustiva."
+
+
+==============================================================
+SECCIÓN 3: RTM — TRAZABILIDAD DE REQUERIMIENTOS
+==============================================================
+
+--------------------------------------------------------------
+DIAPOSITIVA 8 — ¿QUÉ ES LA RTM?
+--------------------------------------------------------------
+[GRÁFICO]: Definición en recuadro + diagrama lineal:
+           REQUERIMIENTO → MÓDULO → CLASE / USE CASE → TEST → CI
+
+QUÉ DECIR:
+"RTM significa Requirements Traceability Matrix, o Matriz de Trazabilidad
+de Requerimientos. Es un documento que vincula cada requerimiento con
+el código que lo implementa y los tests que lo verifican.
+
+¿Para qué sirve? Nos permite demostrar que nada se quedó sin implementar
+y que nada se implementó sin un requerimiento que lo justifique. Si alguien
+pregunta 'probaron que el login funciona?' podemos señalar exactamente qué
+tests lo cubren y en qué línea del código.
+
+Nuestra RTM sigue el estándar IEEE 730 §7 (el estándar internacional para
+planes de aseguramiento de calidad de software) y está en su versión 3.0."
+
+TÉRMINO A EXPLICAR — IEEE 730:
+"Es un estándar de la IEEE (Instituto de Ingenieros Eléctricos y Electrónicos,
+el organismo que define estándares de ingeniería a nivel mundial) que especifica
+cómo estructurar un Plan de Aseguramiento de Calidad de Software (SQA Plan).
+Define qué documentos hay que producir, qué revisar, y cómo medir la calidad."
+
+--------------------------------------------------------------
+DIAPOSITIVA 9 — REQUERIMIENTOS FUNCIONALES
+--------------------------------------------------------------
+[GRÁFICO]: Tabla con los 7 requerimientos funcionales + 2 no funcionales,
+           con columna de estado (todos en verde ✅ excepto REQ-NF02 en amarillo ⚠️).
+
+QUÉ DECIR:
+"El sistema tiene 7 requerimientos funcionales, que son las funciones que
+el sistema DEBE hacer, y 2 requerimientos no funcionales, que describen
+CÓMO debe hacerlas (calidad de servicio).
+
+- REQ-F01: Autenticación — registro, login, selección de rol (Comercio o Consumidor)
+  y gestión de sesión persistente.
+- REQ-F02: El comercio publica packs con descuento. Validamos que el precio
+  con descuento sea efectivamente menor al original.
+- REQ-F03: El consumidor ve packs disponibles en un radio configurable.
+- REQ-F04: El consumidor reserva un pack. Esta operación es ATÓMICA para
+  evitar que dos usuarios reserven el mismo pack simultáneamente.
+- REQ-F05: El comercio marca una reserva como retirada.
+- REQ-F06: El consumidor cancela una reserva activa.
+- REQ-F07: El consumidor puede marcar packs como favoritos y ver su lista.
+
+Los requerimientos no funcionales son:
+- REQ-NF01: Exclusividad de reservas bajo concurrencia — esto es clave y lo
+  veremos en detalle en la sección de pruebas.
+- REQ-NF02: El APK no supera 50 MB — está parcialmente verificado
+  (requiere build de release manual).
+
+Todos los funcionales están en estado ✅ Implementado."
+
+TÉRMINO A EXPLICAR — Operación atómica:
+"Una operación atómica es aquella que se ejecuta completamente o no se ejecuta
+en absoluto: nunca queda en un estado intermedio. En nuestro caso, cuando
+dos usuarios intentan reservar el mismo pack al mismo tiempo, el sistema
+garantiza que solo uno tiene éxito. Esto lo implementamos con una transacción
+@Transaction de Room que hace un UPDATE condicional en la base de datos."
+
+--------------------------------------------------------------
+DIAPOSITIVA 10 — LA RTM EN DETALLE: EJEMPLO DE TRAZABILIDAD
+--------------------------------------------------------------
+[GRÁFICO]: Tabla RTM real del proyecto (fragmento, las primeras 5-6 filas),
+           con columnas: ID | Descripción | Módulo | Clase/UseCase | Test | Estado.
+           Destacar con color la fila de REQ-F04 (reservar pack).
+
+QUÉ DECIR:
+"Aquí vemos la RTM en acción para el caso de reservar un pack (REQ-F04).
+
+El requerimiento dice: 'El usuario reserva un pack para ser retirado'.
+Esto se implementa en el módulo :feature:products, específicamente en la
+clase ReservePackUseCase. En la base de datos, se refleja en el DAO
+PackDao con el método reservePackAtomically(), y el test que lo verifica
+es ReservePackUseCaseTest.kt. Todo integrado en CI (Integración Continua
+con GitHub Actions), que corre automáticamente en cada push al repositorio.
+
+El estado ✅ Implementado significa: código escrito, trazabilidad documentada,
+test existente y ejecutando en CI."
+
+TÉRMINO A EXPLICAR — DAO:
+"DAO significa Data Access Object, Objeto de Acceso a Datos. Es una capa
+que abstrae todas las operaciones sobre la base de datos: consultas, inserciones,
+actualizaciones y eliminaciones. Room genera automáticamente la implementación
+a partir de las anotaciones que escribimos en la interfaz."
+
+TÉRMINO A EXPLICAR — CI (Integración Continua):
+"Cada vez que hacemos un push al repositorio, GitHub Actions ejecuta
+automáticamente todos nuestros 121 tests y el análisis estático de código.
+Si algo falla, el build queda en rojo y no se puede mergear. Esto garantiza
+que el código en la rama main siempre esté en buen estado."
+
+--------------------------------------------------------------
+DIAPOSITIVA 11 — ANOTACIONES @REQUIREMENT EN EL CÓDIGO
+--------------------------------------------------------------
+[GRÁFICO]: Captura de código real mostrando la anotación @Requirement,
+           por ejemplo en ReservePackUseCase.kt:
+
+           @Requirement("REQ-F04", description = "El usuario reserva un pack")
+           class ReservePackUseCase(...)
+
+QUÉ DECIR:
+"Además del documento RTM, la trazabilidad está anotada directamente en el
+código. Usamos una anotación personalizada @Requirement que indica qué
+requerimiento implementa cada clase o función.
+
+Esto es importante: si la RTM y el código difieren, la fuente de verdad es
+el código. Las anotaciones permiten detectar esa desincronización rápidamente.
+
+De hecho, durante la revisión final del Hito 5 detectamos que REQ-F07 (favoritos)
+estaba completamente implementado en código pero ausente de los documentos.
+Las anotaciones nos ayudaron a encontrar esa brecha."
+
+--------------------------------------------------------------
+DIAPOSITIVA 12 — MAPA DE COBERTURA POR REQUERIMIENTO
+--------------------------------------------------------------
+[GRÁFICO]: Gráfico de barras o tabla de colores (heatmap):
+           Filas = REQ-F01 a REQ-NF01
+           Columnas = domain / data / feature
+           Cada celda: número de tests que cubren esa combinación.
+           Ejemplo:
+           REQ-F01: 8 (domain) + 13 (data) + 12+3 (feature) = 46 tests
+
+QUÉ DECIR:
+"Este mapa muestra cuántos tests verifican cada requerimiento en cada capa.
+REQ-F01 (autenticación) es el más cubierto con 46 tests en total, lo que
+tiene sentido porque es la funcionalidad más crítica: si el login falla,
+nada más funciona.
+
+REQ-NF01 (concurrencia) tiene 5 tests específicos, incluyendo el TC-16
+donde simulamos 10 usuarios intentando reservar el mismo pack al mismo tiempo.
+
+Total: 121 tests distribuidos en 5 módulos."
+
+
+==============================================================
+SECCIÓN 4: CALIDAD
+==============================================================
+
+--------------------------------------------------------------
+DIAPOSITIVA 13 — MODELO DE CALIDAD ISO 25010
+--------------------------------------------------------------
+[GRÁFICO]: Diagrama del modelo ISO 25010 con las 8 características de calidad,
+           destacando las 5 que aplicó el proyecto:
+           - Funcionalidad (naranja)
+           - Fiabilidad (naranja)
+           - Mantenibilidad (naranja)
+           - Seguridad (naranja)
+           - Usabilidad (naranja)
+           Las otras 3 en gris.
+
+QUÉ DECIR:
+"La calidad del software no es una sola cosa. El estándar ISO 25010 define
+8 características de calidad. Nosotros trabajamos principalmente sobre 5 de ellas:
+
+- FUNCIONALIDAD: el sistema hace lo que debe hacer (los 7 requerimientos).
+- FIABILIDAD: funciona bien bajo condiciones adversas, como accesos concurrentes.
+- MANTENIBILIDAD: el código es fácil de entender y modificar. Lo medimos con
+  la complejidad ciclomática.
+- SEGURIDAD: aunque detectamos deficiencias (DEF-001), el sistema protege datos.
+- USABILIDAD: las pantallas siguen las heurísticas de Nielsen.
+
+ISO 25010 es el estándar internacional de calidad de software, reemplazó al ISO 9126."
+
+--------------------------------------------------------------
+DIAPOSITIVA 14 — MÉTRICAS DE CALIDAD: ANÁLISIS ESTÁTICO
+--------------------------------------------------------------
+[GRÁFICO]: Tabla con 3 métricas y sus valores:
+
+           ┌──────────────────────────────────────────┐
+           │ MÉTRICA         │ UMBRAL  │ RESULTADO     │
+           │─────────────────┼─────────┼───────────────│
+           │ Comp. Ciclomática│ ≤ 10   │ ✅ Cumple     │
+           │ (Detekt)         │        │               │
+           │─────────────────┼─────────┼───────────────│
+           │ maxIssues Detekt │ = 0    │ ✅ 0 warnings  │
+           │─────────────────┼─────────┼───────────────│
+           │ MI (Mant. Index) │ > 50   │ ✅ Calculado  │
+           └──────────────────────────────────────────┘
+
+QUÉ DECIR:
+"Para el análisis estático de código usamos Detekt, que es la herramienta
+de análisis estático estándar para Kotlin. Corre en cada build del CI.
+
+Complejidad Ciclomática (CC): mide cuántos caminos distintos puede seguir
+el código dentro de una función. Una función con muchos if/else/when anidados
+tiene alta complejidad ciclomática, lo que la hace difícil de entender y testear.
+Fijamos un límite de 10: si una función supera ese valor, el build falla.
+Esto nos obligó a refactorizar funciones que estaban creciendo demasiado.
+
+Maintainability Index (MI): es un índice compuesto que combina la complejidad
+ciclomática, el volumen del código (cantidad de operadores y operandos) y
+las líneas de código. Varía de 0 a 100. Valores sobre 50 indican código
+mantenible. Es útil para comparar módulos: un MI bajo en un módulo indica
+que merece una refactorización."
+
+TÉRMINO A EXPLICAR — Análisis estático:
+"El análisis estático examina el código SIN ejecutarlo. Detecta problemas
+potenciales, violaciones de estilo y métricas de calidad solo leyendo el
+texto del código fuente. Es complementario a los tests, que sí ejecutan el código."
+
+--------------------------------------------------------------
+DIAPOSITIVA 15 — COBERTURA DE CÓDIGO: JACOCO
+--------------------------------------------------------------
+[GRÁFICO]: Dos barras de progreso grandes y verdes:
+
+           INSTRUCCIONES: ████████████████░░ 84.73%  (umbral: 70%)
+           RAMAS:         ████████████████░░ 80.41%  (umbral: 60%)
+
+           Debajo: tabla por módulo con su cobertura individual.
+
+QUÉ DECIR:
+"La cobertura de código la medimos con JaCoCo, que es el estándar de
+cobertura para proyectos Java y Kotlin.
+
+Tenemos dos métricas:
+
+COBERTURA DE INSTRUCCIONES (84.73%): de cada 100 líneas de código que
+se pueden ejecutar, nuestros tests ejecutan 84. Superamos el umbral
+del 70% que exige IEEE 730.
+
+COBERTURA DE RAMAS (80.41%): de cada 100 decisiones en el código
+(cada if, when, try/catch), nuestros tests recorren 80 caminos distintos.
+Superamos el umbral del 60%.
+
+Un 100% de cobertura no garantiza ausencia de bugs, pero una cobertura
+baja casi garantiza que hay código que nunca fue probado.
+
+Importante: excluimos deliberadamente los Composables de UI de la cobertura,
+porque requieren tests de interfaz de usuario (tests instrumentados) que
+están fuera del alcance del proyecto."
+
+TÉRMINO A EXPLICAR — Cobertura de ramas:
+"Imagine un if (x > 0): tiene dos ramas, la del 'sí' (x es positivo) y
+la del 'no' (x no es positivo). La cobertura de instrucciones solo cuenta
+que ejecutamos esa línea; la cobertura de ramas exige que probemos ambos
+caminos. Es una métrica más exigente y más valiosa."
+
+--------------------------------------------------------------
+DIAPOSITIVA 16 — DETEKT EN CI: TOLERANCIA CERO
+--------------------------------------------------------------
+[GRÁFICO]: Captura del pipeline de CI (GitHub Actions) mostrando los pasos:
+           1. Checkout
+           2. Detekt
+           3. Tests
+           4. JaCoCo coverage
+           Con checkmarks verdes en cada paso.
+
+QUÉ DECIR:
+"En GitHub Actions configuramos una política de tolerancia cero: si Detekt
+detecta cualquier problema, el build falla. Esto incluye funciones con
+complejidad ciclomática > 10, variables sin usar, imports innecesarios, etc.
+
+Esto nos pasó durante el desarrollo: cuando agregamos la lógica de filtros
+en ReservationsViewModel, la complejidad ciclomática superó el límite y el
+CI rechazó el commit. Tuvimos que refactorizar la función en partes más pequeñas.
+Es incómodo en el momento, pero garantiza que el código no se degrade con el tiempo."
+
+
+==============================================================
+SECCIÓN 5: PRUEBAS
+==============================================================
+
+--------------------------------------------------------------
+DIAPOSITIVA 17 — ESTRATEGIA DE PRUEBAS
+--------------------------------------------------------------
+[GRÁFICO]: Pirámide de tests:
+           - Tope (pequeño): Tests de UI — No implementados (excluidos)
+           - Medio: Tests de integración liviana (use case ↔ repositorio)
+           - Base (ancho): Tests unitarios (121 tests) — JUnit 4 + MockK
+
+           A los costados:
+           - Izquierda: "Caja Negra (Black Box)"
+           - Derecha: "Caja Blanca (White Box)"
+
+QUÉ DECIR:
+"Nuestra estrategia de pruebas sigue el modelo de pirámide de tests:
+muchos tests unitarios en la base (son rápidos y baratos) y menos
+tests de integración y UI en la cima.
+
+La base son nuestros 121 tests unitarios, que prueban cada componente
+en aislamiento usando MockK para simular las dependencias.
+
+En el medio tenemos tests de integración liviana, donde verificamos que
+un caso de uso y su repositorio colaboran correctamente.
+
+Y también tenemos tests de concurrencia, que van más allá de los unitarios:
+simulamos múltiples coroutines (hilos de ejecución livianos) compitiendo
+por el mismo recurso.
+
+Usamos dos técnicas de diseño: Caja Negra y Caja Blanca."
+
+TÉRMINO A EXPLICAR — MockK:
+"MockK es una librería para Kotlin que permite crear objetos 'mock', es decir,
+versiones falsas pero controladas de las dependencias. Por ejemplo, en lugar
+de conectar con una base de datos real, el test usa un mock del repositorio
+que devuelve datos predefinidos. Esto hace los tests rápidos, predecibles
+y ejecutables sin un dispositivo Android real."
+
+TÉRMINO A EXPLICAR — Coroutines:
+"Las coroutines son la forma de Kotlin de ejecutar código asíncrono: operaciones
+que pueden tomar tiempo (como consultar una base de datos o una red) sin bloquear
+el hilo principal de la app. Son más eficientes que los threads tradicionales
+porque miles de coroutines pueden ejecutarse en pocos threads reales."
+
+--------------------------------------------------------------
+DIAPOSITIVA 18 — CAJA NEGRA vs CAJA BLANCA
+--------------------------------------------------------------
+[GRÁFICO]: Dos columnas lado a lado:
+
+           CAJA NEGRA                    CAJA BLANCA
+           ──────────                    ────────────
+           El tester NO conoce el        El tester SÍ conoce el
+           código interno.               código interno.
+
+           Solo importan:                Se verifican:
+           Entrada → Resultado           Ramas, condiciones,
+                                         llamadas a colaboradores
+
+           Ejemplo TC-01:                Ejemplo TC-09:
+           email + password →            La rama 'contraseña incorrecta'
+           ¿devuelve Success?            → ¿retorna el error correcto?
+
+QUÉ DECIR:
+"Caja Negra: probamos el sistema desde afuera, como un usuario. Solo nos
+importa qué entra y qué sale. No nos importa cómo el código internamente
+llega al resultado. Es la perspectiva del usuario.
+
+Caja Blanca: conocemos el código y diseñamos tests para recorrer caminos
+específicos. Queremos asegurarnos de que cada rama condicional se pruebe.
+Es la perspectiva del desarrollador.
+
+Documentamos 8 casos de caja negra y 8 de caja blanca, para un total de
+16 casos de prueba. En la siguiente diapositiva vemos ejemplos concretos."
+
+--------------------------------------------------------------
+DIAPOSITIVA 19 — CASOS DE PRUEBA DESTACADOS
+--------------------------------------------------------------
+[GRÁFICO]: Tarjetas con 3 casos de prueba relevantes:
+
+           TC-01 (Caja Negra): Login con credenciales válidas → ✅ PASA
+           TC-11 (Caja Blanca): Pack ya reservado bajo concurrencia → ✅ PASA
+           TC-16 (Concurrencia): 10 usuarios, solo 1 tiene éxito → ✅ PASA
+
+QUÉ DECIR:
+"Les muestro tres casos representativos:
+
+TC-01 — Login exitoso: Le damos un email y contraseña válidos al sistema.
+Esperamos Result.Success con el usuario correcto. Pasó. Esto es caja negra
+clásica: verificamos el contrato externo de la función.
+
+TC-11 — Concurrencia con pack ya reservado: Este es de caja blanca. Sabemos
+que internamente la función reservePackAtomically() retorna cuántas filas
+modificó en la base de datos. Si retorna 0, significa que otro usuario ya
+reservó el pack. Verificamos que el sistema devuelva un error con el mensaje
+'REQ-NF01' en ese caso.
+
+TC-16 — El más interesante: 10 coroutines en paralelo intentan reservar
+el mismo pack al mismo tiempo. Esperamos exactamente 1 éxito y 9 errores.
+Este test valida REQ-NF01 (exclusividad) de forma determinista, sin depender
+del timing del hardware."
+
+--------------------------------------------------------------
+DIAPOSITIVA 20 — TABLA DE CASOS DE PRUEBA
+--------------------------------------------------------------
+[GRÁFICO]: Tabla resumida de los 16 casos:
+           TC-01 a TC-08: Caja Negra — todos ✅ PASA
+           TC-09 a TC-16: Caja Blanca — todos ✅ PASA
+
+           Con columna de Requisito asociado.
+
+QUÉ DECIR:
+"Los 16 casos documentados corresponden a los más representativos de los
+121 tests implementados. Los casos de caja negra cubren los requerimientos
+REQ-F01 a REQ-F06. Los de caja blanca cubren caminos internos críticos
+como el manejo de errores, las transacciones y la lógica de estado.
+
+Todos pasan en el CI actual."
+
+--------------------------------------------------------------
+DIAPOSITIVA 21 — REPORTE DE DEFECTOS
+--------------------------------------------------------------
+[GRÁFICO]: Tabla de defectos:
+
+           ID     | Severidad | Estado
+           DEF-001 | Alta      | Abierto
+           DEF-002 | Media     | Abierto
+           DEF-003 | Alta      | ✅ RESUELTO
+           DEF-004 | Media     | Abierto
+           DEF-005 | Baja      | Abierto
+           DEF-006 | Media     | Abierto
+
+           Gráfico de torta: 1 Alta abierto / 1 Alta resuelto / 3 Media / 1 Baja
+
+QUÉ DECIR:
+"Durante el desarrollo identificamos y documentamos 6 defectos formales.
+Para cada uno especificamos: severidad, módulo afectado, pasos para reproducir,
+impacto en el sistema y corrección sugerida.
+
+DEF-001 (Alta, Abierto): Uso de hashCode() de Java para almacenar contraseñas.
+hashCode() NO es una función criptográfica; es reversible, no usa sal (salt)
+y varía entre versiones de JVM. En un sistema productivo habría que usar
+BCrypt o PBKDF2. Lo dejamos documentado como deuda técnica crítica.
+
+DEF-002 (Media): La búsqueda de packs no filtra por distancia real. Está
+documentado en el código como 'comportamiento MVP', pero es una brecha con
+REQ-F03. La corrección sería implementar la fórmula de Haversine.
+
+DEF-003 (Alta, RESUELTO): El más grave que resolvimos. El método getCurrentUser()
+siempre devolvía null. Esto hacía que ViewModels usaran IDs hardcodeados y
+la sesión no persistía entre reinicios de la app. La solución fue implementar
+SessionManager usando Jetpack DataStore. Agregamos 9 tests de regresión para
+verificar la corrección."
+
+TÉRMINO A EXPLICAR — Deuda técnica:
+"La deuda técnica son decisiones de implementación que sabemos que no son
+las óptimas pero que aceptamos conscientemente por restricciones de tiempo
+o alcance. Como una deuda financiera, con el tiempo 'paga intereses': el
+código se vuelve más difícil de mantener. Lo importante es documentarla
+para que el equipo sepa que existe."
+
+TÉRMINO A EXPLICAR — Salt / Sal criptográfica:
+"Una sal es un valor aleatorio que se agrega a la contraseña ANTES de aplicar
+el hash. Esto garantiza que dos usuarios con la misma contraseña tengan hashes
+distintos, y hace que los ataques de tabla arcoíris (listas precomputadas de
+hashes) sean ineficaces."
+
+TÉRMINO A EXPLICAR — Fórmula de Haversine:
+"Es la fórmula matemática para calcular la distancia entre dos puntos en la
+superficie de una esfera (como la Tierra) usando sus coordenadas de latitud
+y longitud. La usaríamos para filtrar los packs que estén dentro del radio
+configurado por el usuario."
+
+
+==============================================================
+SECCIÓN 6: UX — EXPERIENCIA DE USUARIO
+==============================================================
+
+--------------------------------------------------------------
+DIAPOSITIVA 22 — ¿POR QUÉ IMPORTA EL UX?
+--------------------------------------------------------------
+[GRÁFICO]: Cita famosa de Nielsen: "If users can't use a feature, it doesn't work."
+           O simplemente: "Un software que nadie sabe usar, no funciona."
+
+QUÉ DECIR:
+"Un sistema puede ser técnicamente impecable, con arquitectura perfecta,
+tests al 100% y cero defectos, y aun así fracasar si los usuarios no lo
+entienden o no lo disfrutan usar.
+
+La experiencia de usuario (UX) es la disciplina que se ocupa de que el
+sistema sea intuitivo, eficiente y satisfactorio para las personas que
+lo usan. No es solo hacer que sea bonito: es asegurarse de que cumple
+su propósito desde la perspectiva del usuario.
+
+Para evaluar nuestras pantallas usamos las 10 heurísticas de usabilidad
+de Jakob Nielsen, que son los principios de diseño más ampliamente
+adoptados en la industria."
+
+--------------------------------------------------------------
+DIAPOSITIVA 23 — LAS 10 HEURÍSTICAS DE NIELSEN
+--------------------------------------------------------------
+[GRÁFICO]: Lista de las 10 heurísticas con íconos:
+           1. Visibilidad del estado del sistema
+           2. Coincidencia sistema/mundo real
+           3. Control y libertad del usuario
+           4. Consistencia y estándares
+           5. Prevención de errores
+           6. Reconocimiento antes que recuerdo
+           7. Flexibilidad y eficiencia
+           8. Diseño estético y minimalista
+           9. Ayuda para recuperarse de errores
+           10. Ayuda y documentación
+
+QUÉ DECIR:
+"Jakob Nielsen es uno de los investigadores de usabilidad más reconocidos
+del mundo. En 1994 definió estas 10 heurísticas (principios guía) que
+siguen siendo el estándar para evaluar la usabilidad de cualquier interfaz.
+
+Son heurísticas, no reglas absolutas: son guías de diseño basadas en
+investigación empírica sobre cómo los usuarios perciben e interactúan
+con interfaces.
+
+Nosotros las aplicamos como checklist a nuestras 3 pantallas principales
+y documentamos cómo cada pantalla las cumple."
+
+--------------------------------------------------------------
+DIAPOSITIVA 24 — WIREFRAME 1: HOME SCREEN
+--------------------------------------------------------------
+[GRÁFICO]: El wireframe ASCII del documento, renderizado como imagen o
+           captura real de la pantalla HomeConsumerScreen.
+
+           Destacar con flechas:
+           → Header verde con saludo
+           → Barra de búsqueda
+           → Feed de packs (LazyColumn)
+           → Tab bar inferior
+
+QUÉ DECIR:
+"La pantalla principal del consumidor sigue un patrón 'feed con header',
+familiar para quien usa apps de delivery como Rappi o PedidosYa.
+
+El header verde muestra el saludo y el ícono de notificaciones. La barra
+de búsqueda filtra en tiempo real sin hacer consultas al servidor.
+El feed muestra los packs disponibles como tarjetas.
+
+Nielsen #2 (coincidencia con el mundo real): usamos el lenguaje cotidiano:
+'Hola 👋', '¿Qué vas a rescatar hoy?', 'Destacados 🔥'. No hay jerga técnica.
+
+Nielsen #8 (diseño minimalista): solo 3 bloques en la pantalla (header,
+buscador, feed). Sin elementos decorativos que compitan por atención.
+
+Nielsen #9 (recuperación de errores): si la carga falla, se muestra
+el mensaje de error en rojo usando los colores del tema Material 3.
+No hay pantalla en blanco que deje al usuario sin saber qué pasó."
+
+--------------------------------------------------------------
+DIAPOSITIVA 25 — WIREFRAME 2: FEED DE PACKS (PackCard)
+--------------------------------------------------------------
+[GRÁFICO]: Wireframe ASCII del feed + captura real de una PackCard.
+           Flechas señalando:
+           → Badge de descuento (-XX%) en naranja
+           → Precio con descuento (verde, grande)
+           → Precio original (tachado, gris)
+           → "N disponibles · ~X km"
+
+QUÉ DECIR:
+"Cada tarjeta del feed está diseñada para que el usuario pueda comparar
+opciones en un vistazo, sin entrar al detalle de cada pack.
+
+Muestra exactamente 4 datos: imagen, nombre + distancia, descuento y precios.
+No más, no menos.
+
+Nielsen #6 (reconocimiento antes que recuerdo): el descuento, el precio
+y la disponibilidad están siempre visibles. El usuario no necesita recordar
+datos de otras pantallas para comparar opciones.
+
+Nielsen #5 (prevención de errores): tocar la tarjeta solo navega al detalle,
+no reserva directamente. La acción irreversible (reservar) requiere una
+confirmación adicional en la siguiente pantalla."
+
+--------------------------------------------------------------
+DIAPOSITIVA 26 — WIREFRAME 3: DETALLE DEL PACK (Input Crítico)
+--------------------------------------------------------------
+[GRÁFICO]: Wireframe ASCII de PackDetailScreen con las 3 novedades marcadas:
+           → Selector de cantidad [-] 1 [+]
+           → Caja de aviso legal (fondo amarillo)
+           → Checkbox obligatorio
+           → Botón CTA deshabilitado/habilitado
+
+           Mostrar dos estados del botón: gris (sin tildar) vs verde (tildado).
+
+QUÉ DECIR:
+"La pantalla de detalle incorpora tres elementos de diseño que mejoran
+significativamente la experiencia:
+
+1. Selector de cantidad: el usuario puede ajustar cuántos packs quiere
+   y el precio total se actualiza instantáneamente en el botón.
+
+2. Caja de aviso legal: con fondo amarillo claro y borde naranja, informa
+   al usuario cuándo debe pasar a retirar. No es texto pequeño al pie de
+   página: está en el centro de la pantalla, antes del botón de reservar.
+
+3. Checkbox obligatorio: el botón 'Reservar' está DESHABILITADO por defecto.
+   Solo se habilita cuando el usuario tilda 'Entiendo y acepto el horario
+   de retiro'. Esto implementa Nielsen #5 (prevención de errores): evita que
+   el usuario reserve sin entender que debe retirar en una franja horaria
+   específica y sin posibilidad de devolución.
+
+Nielsen #3 (control y libertad): el usuario puede destildar el checkbox y
+el botón vuelve a deshabilitarse sin perder los datos. Y el botón 'Volver'
+siempre está visible."
+
+--------------------------------------------------------------
+DIAPOSITIVA 27 — PROTOTIPO EN FIGMA / PALETA
+--------------------------------------------------------------
+[GRÁFICO]:
+   - Si tienen Figma: capturas del prototipo en Figma con el flujo de navegación.
+   - Si no tienen Figma: mostrar la paleta de colores real de la app con
+     sus nombres y códigos hex:
+     Verde primario (#2E7D32), Naranja acento (#E65100),
+     Fondo (#FAFAFA), Error (#B00020)
+   - Flujo de navegación como diagrama:
+     Home → Feed → Detalle → Confirmación → Mis Reservas
+
+QUÉ DECIR:
+"El prototipo en Figma refleja la paleta de colores Material 3 que
+implementamos en la app.
+
+El verde (#2E7D32) es el color primario: remite a la naturaleza, la
+ecología y la idea de rescate. El naranja (#E65100) es el color de acento
+para urgencia: badges de descuento, avisos importantes. El fondo es gris
+muy claro (#FAFAFA) para no cansar la vista.
+
+Esta paleta es consistente en TODA la app: Nielsen #4 (consistencia y
+estándares). El usuario que aprende que el verde indica 'acción principal'
+lo reconoce en cualquier pantalla sin aprender de nuevo."
+
+--------------------------------------------------------------
+DIAPOSITIVA 28 — FLUJO DE NAVEGACIÓN UX
+--------------------------------------------------------------
+[GRÁFICO]: Diagrama de flujo de navegación completo:
+
+           Login/Register
+                ↓
+           [Consumidor]                [Comercio]
+           HomeConsumerScreen         HomeCommerceScreen
+                ↓                           ↓
+           PackDetailScreen          PublishPackScreen
+                ↓                           ↓
+           Reserva exitosa          PendingReservationsScreen
+                ↓
+           MyReservationsScreen
+           (filtros: TODOS / RETIRADOS / CANCELADOS)
+
+QUÉ DECIR:
+"La navegación está estructurada en dos flujos paralelos según el rol
+del usuario. Un Comercio y un Consumidor tienen pantallas distintas
+aunque comparten la misma base de datos.
+
+Esto es importante desde el punto de vista de UX: no obligamos al mismo
+usuario a ver opciones que no le corresponden. Cada rol ve exactamente
+lo que necesita."
+
+
+==============================================================
+SECCIÓN 7: REFLEXIÓN FINAL
+==============================================================
+
+--------------------------------------------------------------
+DIAPOSITIVA 29 — ¿QUÉ APRENDIMOS?
+--------------------------------------------------------------
+[GRÁFICO]: 4 íconos grandes con título y una línea:
+           🏗️ Arquitectura como inversión
+           🧪 Los tests documentan intención
+           📋 La trazabilidad no es burocracia
+           🐛 Los defectos como aprendizaje
+
+QUÉ DECIR:
+"Reflexionando sobre el proceso, identificamos cuatro aprendizajes clave:
+
+1. ARQUITECTURA COMO INVERSIÓN: Al principio, configurar 8 módulos Gradle
+   parecía excesivo para el tamaño del proyecto. Hacia el final, esa
+   separación nos permitió agregar favoritos, sesión DataStore y reservas
+   pendientes sin tocar código ya estabilizado. La arquitectura se paga sola.
+
+2. LOS TESTS DOCUMENTAN LA INTENCIÓN: La convención given/when/then nos
+   forzó a pensar en contratos antes de implementar. El test de concurrencia
+   TC-16 es el ejemplo más claro: al intentar escribirlo, descubrimos que
+   la transacción @Transaction debía estar en el DAO, no en el repositorio.
+   El test guió el diseño.
+
+3. LA TRAZABILIDAD NO ES BUROCRACIA: Mantener las anotaciones @Requirement
+   y la RTM nos permitió detectar que REQ-F07 estaba implementado pero
+   ausente de los documentos. Sin trazabilidad, eso habría quedado como
+   un agujero en la defensa.
+
+4. LOS DEFECTOS COMO APRENDIZAJE: DEF-001 nos hizo investigar BCrypt y
+   PBKDF2. DEF-003 nos hizo entender DataStore en profundidad. Documentar
+   defectos no es una penalidad; es una herramienta de conocimiento."
+
+--------------------------------------------------------------
+DIAPOSITIVA 30 — ¿QUÉ HARÍAMOS DISTINTO?
+--------------------------------------------------------------
+[GRÁFICO]: 4 puntos en una lista tipo "lecciones aprendidas":
+           📝 RTM desde el primer commit
+           🔐 Sesión persistente desde el inicio
+           ⚙️ CI desde el Hito 2
+           🖥️ Tests de UI con ComposeTestRule
+
+QUÉ DECIR:
+"Siendo honestos sobre lo que mejoraríamos:
+
+1. EMPEZAR LA RTM DESDE EL DÍA 1: La RTM requirió trabajo retroactivo
+   en el Hito 3. Si hubiéramos establecido los IDs de requerimiento
+   desde el scaffold inicial, cada commit habría podido referenciarlos.
+
+2. SESIÓN PERSISTENTE DESDE EL INICIO: DEF-003 fue un stub que quedó
+   sin implementar demasiado tiempo. Causó deuda técnica en cadena:
+   varios ViewModels tuvieron que usar IDs hardcodeados que luego
+   requirieron refactorizaciones.
+
+3. CI DESDE EL HITO 2: Configuramos GitHub Actions en el Hito 3.
+   Haberlo tenido antes habría detectado regresiones de Detekt más temprano.
+
+4. TESTS DE UI: Nuestra cobertura del 84% cubre la lógica de negocio,
+   pero las pantallas Compose no están cubiertas. En un proyecto real
+   agregaríamos tests con ComposeTestRule para los flujos críticos."
+
+TÉRMINO A EXPLICAR — ComposeTestRule:
+"Es el framework de testing de interfaces de usuario para Jetpack Compose.
+Permite verificar que un botón aparece en la pantalla, que un texto
+tiene el contenido correcto, o que al hacer clic en algo navega a la
+pantalla esperada. Es el equivalente a Espresso pero para Compose."
+
+--------------------------------------------------------------
+DIAPOSITIVA 31 — TEMAS DE LA MATERIA APLICADOS
+--------------------------------------------------------------
+[GRÁFICO]: Tabla de dos columnas:
+           TEMA                      │ CÓMO SE APLICÓ
+           ISO/IEC 25010             │ 5 características de calidad
+           IEEE 730                  │ Plan SQA, estructura RTM
+           IEEE 829                  │ Plan de pruebas y casos
+           FMEA                      │ Análisis de modos de falla
+           RTM                       │ Trazabilidad REQ → código → test → CI
+           Análisis estático         │ Detekt CC ≤ 10, maxIssues = 0
+           Cobertura (JaCoCo)        │ 84.73% instrucciones, 80.41% ramas
+           Prog. defensiva           │ Result<T> en toda la capa de datos
+           Heurísticas Nielsen       │ Análisis de 3 pantallas
+           Gestión de defectos       │ 6 defectos, 1 resuelto con regresión
+           MVVM + Clean Architecture │ Separación estricta por capas
+
+QUÉ DECIR:
+"Este slide resume cómo cada tema de la materia se manifestó en el proyecto.
+No los vimos como teoría separada: cada concepto tuvo un artefacto concreto.
+
+IEEE 829: el estándar para documentos de testing. Nuestro plan de pruebas
+sigue su estructura.
+
+FMEA (Failure Mode and Effects Analysis): análisis de modos y efectos de
+falla. Nos ayudó a pensar en qué podría salir mal: la concurrencia de reservas,
+la sesión null, el hash inseguro. Cada uno terminó siendo un defecto reportado.
+
+Programación defensiva: usamos Result<T> como tipo de retorno en toda la
+capa de datos. En lugar de lanzar excepciones que pueden romper la app,
+devolvemos Result.Success o Result.Error explícitamente. El llamador siempre
+sabe si algo falló y por qué."
+
+TÉRMINO A EXPLICAR — FMEA:
+"FMEA es una técnica de análisis de riesgos que consiste en preguntarse
+sistemáticamente: '¿qué puede fallar en este componente? ¿cómo falla?
+¿cuál es el efecto? ¿qué tan probable es?' Se usa mucho en ingeniería
+de sistemas y también aplica al software."
+
+--------------------------------------------------------------
+DIAPOSITIVA 32 — CIERRE Y PREGUNTAS
+--------------------------------------------------------------
+[GRÁFICO]: Pantalla limpia con:
+           - Logo de Aprovecha!
+           - "¡Gracias!"
+           - Los 7 requerimientos implementados ✅
+           - Número clave: 121 tests | 84.73% cobertura
+           - Pregunta: "¿Preguntas?"
+
+QUÉ DECIR:
+"Para cerrar: Aprovecha! es un sistema funcional que implementa los 7
+requerimientos funcionales definidos, con 121 tests automatizados que
+garantizan que cada requerimiento funciona según lo especificado,
+una cobertura del 84.73% que supera los umbrales IEEE 730,
+trazabilidad completa desde requerimiento hasta CI,
+análisis de calidad estático con tolerancia cero,
+y un análisis UX aplicando las heurísticas de Nielsen.
+
+Es un proyecto que no solo 'corre': está diseñado, testeado y documentado
+como se haría en un equipo de desarrollo profesional.
+
+Muchas gracias. Quedamos a disposición para preguntas."
+
+==============================================================
+NOTAS ADICIONALES PARA EL PRESENTADOR
+==============================================================
+
+GLOSARIO RÁPIDO DE TÉRMINOS A TENER A MANO:
+
+- Kotlin: Lenguaje de programación moderno para Android, creado por JetBrains,
+  oficial de Google desde 2017. Es más conciso y seguro que Java.
+
+- Gradle: Sistema de construcción (build system) de proyectos Android.
+  El "multi-módulo Gradle" significa que el proyecto está dividido en
+  subproyectos independientes que se compilan por separado.
+
+- Room: Librería de Google que simplifica el uso de SQLite (base de datos
+  relacional) en Android. Genera código automáticamente a partir de anotaciones.
+
+- DataStore: Librería de Google para almacenar datos clave-valor en Android.
+  Reemplaza a SharedPreferences con mejor soporte para operaciones asíncronas.
+
+- Hilt: Framework de inyección de dependencias para Android, basado en Dagger.
+
+- Flow: Un tipo de dato en Kotlin que representa una secuencia de valores
+  emitidos de forma asíncrona. Similar a un Observable de RxJava.
+  Lo usamos para observar cambios en la base de datos en tiempo real.
+
+- @Transaction en Room: Garantiza que un conjunto de operaciones de base de
+  datos se ejecutan de forma atómica. Si alguna falla, todas se revierten.
+
+- UseCase (Caso de Uso): En Clean Architecture, una clase que encapsula una
+  única acción de negocio. Por ejemplo, LoginUserUseCase solo sabe cómo
+  hacer login; no sabe nada de UI ni de base de datos.
+
+- ViewModel: Componente de la arquitectura MVVM que sobrevive rotaciones de
+  pantalla y expone datos a la UI a través de StateFlow.
+
+- StateFlow: Un tipo especial de Flow que siempre tiene un valor actual y
+  notifica a los observadores cuando cambia. Los ViewModels lo usan para
+  informar a la UI sobre el estado actual.
+
+TIPS PARA LA PRESENTACIÓN:
+- La demo en vivo es el momento más arriesgado. Tener capturas de pantalla
+  como respaldo en una diapositiva de "backup".
+- Para el TC-16 (concurrencia), considerar mostrar el código del test
+  y el output del CI en lugar de intentar ejecutarlo en vivo.
+- Si preguntan sobre el hash inseguro (DEF-001): explicar que es deuda
+  técnica conocida y documentada, y que en producción usaríamos BCrypt.
+- Si preguntan sobre la cobertura del 84%: aclarar que el 16% restante
+  son principalmente Composables de UI que requieren tests instrumentados
+  (que corren en un dispositivo real o emulador, no en JVM local).
+
+============================================================
+Fin del documento — Versión 1.0 — Junio 2026
+============================================================

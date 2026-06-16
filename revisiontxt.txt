@@ -1,0 +1,341 @@
+RESUMEN HITOS
+
+Hito 1 - Propuesta
+Propuesta de Proyecto
+Entregables requeridos:
+Idea elegida (entre 3 preliminares) — problema concreto + público objetivo
+PDF de propuesta (1 página) — problema, propuesta, stack tecnológico, alcance del MVP
+Repositorio Git inicial  — público, con el README mínimo y permisos para todo el grupo
+
+Hito 2 - ISO/IEC 25010 + Plan SQA inicial
+Entregables requeridos
+Mapeo ISO 25010 — 5+ características de calidad priorizadas para el proyecto, con justificación
+Definición del MVP — alcance mínimo viable, fuera de alcance explícito
+Criterios de aceptación — qué debe cumplir cada funcionalidad para considerarse "terminada"
+Plan SQA inicial — roles, revisiones planificadas, herramientas de calidad a usar
+Stack tecnológico definitivo — lenguajes, frameworks, base de datos, herramientas de despliegue
+Repositorio con primeros commits — scaffold del proyecto, README ampliado
+
+
+Hito 3 - Análisis de Sistema Crítico + Métricas
+Entregables requeridos
+Clasificación de criticidad del proyecto — safety / security / mission / business critical, con justificación
+FMEA inicial — 5+ modos de falla identificados con severidad, probabilidad y detección (RPN)
+Estrategias de tolerancia a defectos — programación defensiva, fail-safe, validaciones críticas previstas
+Métricas iniciales del código — LOC, complejidad ciclomática, índice de mantenibilidad (al menos sobre los módulos ya escritos)
+RTM (matriz de trazabilidad) inicial — requerimientos ↔ módulos del código
+Repositorio con avance funcional — al menos las funcionalidades centrales del MVP empezadas
+
+
+Hito 4 - Plan de pruebas + Defectos
+Entregables requeridos
+Plan de pruebas — alcance, estrategia y criterios de aceptación
+15+ casos de prueba — caja negra (partición, valores límite, decisión, estados)
+Tests automatizados — pytest / jest ejecutándose en el repo
+Cobertura ≥ 60% — sobre módulos principales
+5+ defectos reportados — en GitHub Issues o similar, con severidad y prioridad
+Repositorio actualizado  — commits regulares de todo el grupo
+
+
+Hito 5 - Entrega Final
+Entregables requeridos
+Repositorio público funcional — código que levanta sin errores
+README completo — instalación, uso, dependencias, decisiones de diseño
+RTM completa — matriz de trazabilidad (Sem 6)
+Plan SQA actualizado — con las métricas finales
+Plan de pruebas + defectos — actualizado desde el Hito 4
+Métricas finales — LOC, CC, MI, cobertura, defectos/KLOC
+Wireframes + mockups en Figma — al menos 3 pantallas claves del producto
+Análisis heurístico — 10 heurísticas de Nielsen aplicadas a su app
+Reflexión final (1 página) — qué aprendieron, qué harían distinto
+Defensa oral (25 min por grupo) — slides + demo en vivo. Cada integrante presenta una sección
+
+HITOS AMPLIADOS:
+Hito 1 — Sem 7 (29/04): Conformación de grupos + idea preliminar
+Qué se entrega:
+Nombre del grupo (puede ser informal)
+Lista de integrantes (nombre, apellido, email)
+3 ideas posibles de proyecto (1-2 líneas cada una)
+
+Hito 2 — Sem 8 (05/05): Propuesta de proyecto
+Qué se entrega: documento PDF de 1 página con la siguiente estructura:
+•
+•
+•
+Ingeniería de Software II — Semana-07 — Trabajo de Campo Consigna | Página 3 de 8
+PROPUESTA DE PROYECTO
+═══════════════════════════════════════════════════════════════
+Grupo: ________________________________________
+Integrantes: ___________________________________
+1. NOMBRE DEL PROYECTO: _______________________________________
+2. PROBLEMA QUE RESUELVE (3-5 líneas):
+___________________________________________________________
+3. USUARIOS / PÚBLICO OBJETIVO: ______________________________
+4. ALCANCE FUNCIONAL — al menos 5 requerimientos:
+REQ-F01: __________________________________________________
+REQ-F02: __________________________________________________
+REQ-F03: __________________________________________________
+REQ-F04: __________________________________________________
+REQ-F05: __________________________________________________
+5. ALCANCE NO FUNCIONAL — al menos 2 requerimientos:
+REQ-NF01: _________________________________________________
+REQ-NF02: _________________________________________________
+6. STACK TECNOLÓGICO:
+- Lenguaje: __________
+- Framework: __________
+- Base de datos: __________
+- Otras herramientas: ______
+7. REPOSITORIO (URL pública en GitHub/GitLab): _______________
+8. RIESGOS PRINCIPALES Y CÓMO LOS MITIGARÁN (2-3 ítems):
+- _________________________________________________________
+- _________________________________________________________
+Forma de entrega: PDF por mail al docente antes del martes 5/5 a las 19:00 + presentación
+oral de 3 min en clase del martes 5/5 (después del simulacro).
+Criterios de aprobación: alcance realista, requerimientos verificables, stack viable.
+
+Hito 3 — Sem 10 (20/05): Avance 1 — Métricas + Plan SQA
+Qué se entrega:
+Plan SQA simplificado (basado en IEEE 730), con al menos estas secciones:
+Propósito del plan
+Roles del equipo (quién hace QA, quién hace QC, quién es referente)
+Estándares y convenciones (estilo de código, naming, etc.)
+Estrategia de revisiones (code review en cada PR, etc.)
+Métricas a monitorear y umbrales (CC, MI, cobertura)
+Herramientas (linter, formateador, framework de tests)
+Métricas iniciales del código:
+Líneas de código (LOC)
+Complejidad ciclomática (CC) por módulo (con radon cc -s para Python o equivalente)
+Maintainability Index (MI) global
+Reporte de linter (sin errores críticos)
+Estado del repositorio:
+URL del repo público
+Al menos 10 commits con mensajes descriptivos
+README con instrucciones de instalación
+Linter configurado y ejecutándose
+
+Hito 4 — Sem 12 (03/06): Avance 2 — Pruebas + Gestión de defectos
+Qué se entrega:
+Plan de pruebas:
+Alcance (qué se va a testear, qué no)
+Estrategia (caja negra, caja blanca, integración)
+Criterio de aceptación (cobertura mínima esperada, etc.)
+Set de casos de prueba (al menos 15 casos):
+Casos de caja negra (partición de equivalencia, valores límite)
+Casos de caja blanca (cobertura de sentencias, ramas)
+Cada caso con: ID, requerimiento asociado, precondición, pasos, resultado esperado, resultado real
+Implementación de los tests:
+Tests automatizados ejecutándose (pytest, jest, junit, etc.)
+Cobertura ≥ 60% sobre los módulos principales
+Reporte de defectos:
+Al menos 5 defectos detectados durante el desarrollo
+Cada defecto con: ID, severidad, descripción, paso para reproducir, estado (abierto/resuelto)
+
+Hito 5 — Sem 14 (16/06): Entrega final + Defensa oral
+Qué se entrega:
+Proyecto completo en repositorio público con:
+Código funcional y ejecutable
+README completo (instalación, uso, ejemplos)
+Suite de tests pasando
+Pipeline de calidad documentado (linter + tests + métricas)
+Documentación final:
+Catálogo de requerimientos (REQ-F01..., REQ-NF01...) con ID, descripción, prioridad, fuente
+Matriz de Trazabilidad de Requerimientos (RTM) completa: requerimiento → módulo/ función → test → estado
+Plan SQA actualizado (versión final del Hito 3)
+Plan de pruebas + reporte final (versión actualizada del Hito 4)
+Métricas finales: LOC, CC, MI, cobertura de tests
+Wireframes / prototipos (Figma, Balsamiq o similar). Mínimo 3 pantallas en wireframe + 2 en alta fidelidad
+Reflexión final: 1 página sobre qué aprendieron, qué harían distinto, qué temas de la materia aplicaron
+Defensa oral en la clase del 16/06:
+Duración: 10-15 min por grupo
+Demo en vivo del sistema funcionando
+Cada integrante presenta al menos una sección
+Preguntas del docente y compañeros
+
+COSAS A TENER EN CUENTA:
+Criterios de evaluación
+Criterio Peso Qué se evalúa
+Aplicación de conceptos de la
+materia: 40%: Uso correcto de RTM, ISO 25010, SQA, métricas, pruebas,UX
+Calidad del código y trazabilidad: 30% :Código limpio, modular, con trazabilidad embebida ( Trazabilidad: REQ-XXX )
+Pruebas y métricas: 20%: Cobertura ≥ 60%, casos relevantes, defectos documentados
+Presentación y documentación: 10%: Documentación clara, defensa oral preparada, wireframes legibles
+
+Rúbrica por hito
+Nivel Descripción
+Excelente (10): Cumple todo lo solicitado, agrega valor extra, documentación clara, trazabilidad completa
+Bueno (7-8): Cumple lo principal, algunos detalles menores faltantes, trazabilidad parcial
+Aprobado (4-6): Cumple lo mínimo, varios huecos, requiere mejoras significativas
+Insuficiente (1-3):No cumple lo mínimo, faltan entregables principales
+
+Las 10 heurísticas de Jakob Nielsen
+
+Heurística 1: Visibilidad del estado del sistema
+1 El sistema debe siempre informar al usuario qué está pasando, mediante
+feedback apropiado en tiempo razonable.
+BUEN EJEMPLO
+Spinner mientras carga.
+"Mensaje enviado ✓".
+Barra de progreso al subir archivo.
+Indicador "guardado" / "guardando..."
+Notificación de éxito tras acción.
+MAL EJEMPLO
+Click en "Comprar" y nada pasa
+por 5 segundos.
+Pantalla en blanco sin loader.
+Botón que no da feedback al
+hacer click.
+
+Heurística 2: Coincidencia entre sistema y mundo real
+2 El sistema debe hablar el lenguaje del usuario, no jerga técnica.
+Convenciones del mundo real.
+BUEN EJEMPLO
+"Carrito de compras"
+(no "session_cart_object").
+Ícono de lupa = buscar.
+Ícono de sobre = correo.
+Confirmar con "Sí / No"
+(no "Yes / Cancel / Discard").
+MAL EJEMPLO
+"Error 500: Internal Server Error"
+al usuario final.
+"Token JWT expirado, reautentique".
+"Click en botón Foo para activar
+módulo Bar".
+
+Heurística 3: Control y libertad del usuario
+3 Los usuarios necesitan salidas claramente marcadas. "Deshacer" y
+"Rehacer". No quedar atrapados.
+BUEN EJEMPLO
+Botón "Cancelar" en cada flujo.
+Ctrl+Z para deshacer.
+Botón "Volver" claro.
+"Recuperar últimos cambios"
+si cerraste sin querer.
+MAL EJEMPLO
+Modal sin botón de cierre
+(ni siquiera la X).
+Wizard de 7 pasos sin poder
+volver al paso anterior.
+Borrar definitivo sin posibilidad
+de recuperar.
+
+Heurística 4: Consistencia y estándares
+4 Los usuarios no deben preguntarse si palabras, situaciones o acciones
+distintas significan lo mismo.
+BUEN EJEMPLO
+Botón "Eliminar" siempre en rojo,
+posición consistente.
+Mismo ícono = misma acción en
+todas las pantallas.
+Tipografía y colores siguen un
+sistema de diseño.
+MAL EJEMPLO
+En una pantalla "Borrar",
+en otra "Eliminar",
+en otra "Quitar".
+Botón principal a veces azul,
+a veces verde, a veces naranja.
+Headers que cambian de estilo.
+
+Heurística 5: Prevención de errores
+5 Mejor que un buen mensaje de error es un diseño que evite que el error
+ocurra.
+BUEN EJEMPLO
+Confirmar antes de eliminar:
+"¿Estás seguro?"
+Validación en tiempo real:
+"La contraseña debe tener 8+".
+Datepicker en vez de input de
+texto libre para fechas.
+MAL EJEMPLO
+Permitir ingresar "32 de febrero"
+y avisar después al enviar.
+Borrar sin confirmación.
+Permitir DNI con letras y avisar
+al guardar.
+
+Heurística 6: Reconocimiento antes que recuerdo
+6 Minimizar la carga de memoria del usuario mostrando opciones, no
+obligándolo a recordar.
+BUEN EJEMPLO
+Dropdown con opciones visibles.
+Autocompletar de búsquedas.
+"Recientes" en el menú.
+Iconos junto al texto que
+refuerzan la acción.
+MAL EJEMPLO
+"Ingrese el código de su
+provincia" (sin dar lista).
+Pedir comando exacto sin
+autocompletar (CLI antigua).
+Pedir recordar shortcut
+sin mostrarlo.
+
+Heurística 7: Flexibilidad y eficiencia de uso
+7 El sistema debe servir tanto a novatos como a expertos. Atajos,
+personalización, automatización.
+BUEN EJEMPLO
+Atajos de teclado (Ctrl+S).
+"Acciones recientes" para repetir.
+Autocompletar avanzado.
+Gestos en mobile (swipe).
+Plantillas personalizables.
+MAL EJEMPLO
+Solo flujo paso-a-paso
+obligatorio para todos.
+Sin atajos de teclado.
+Sin posibilidad de personalizar
+valores por defecto.
+
+Heurística 8: Diseño estético y minimalista
+8 No incluir información irrelevante o que se use raramente. Cada elemento
+extra compite con los importantes.
+BUEN EJEMPLO
+Apple: espacios en blanco,
+pocas opciones por pantalla.
+Google homepage: una caja
+de búsqueda y dos botones.
+Dropbox: una acción central
+por pantalla.
+MAL EJEMPLO
+Portales con 50 links en el header.
+Páginas con 10 banners
+compitiendo por atención.
+Apps con menús de 30 items
+sin agrupar.
+Pop-ups encima de pop-ups.
+
+Heurística 9: Ayudar a reconocer y recuperarse de errores
+9 Mensajes de error en lenguaje claro, indicando el problema y sugiriendo
+solución.
+BUEN EJEMPLO
+"El email ya está registrado.
+¿Querés iniciar sesión?"
+"Tu tarjeta fue rechazada por
+fondos insuficientes. Probar
+con otra o cargar saldo."
+Mensaje con link directo al fix.
+MAL EJEMPLO
+"ERR_CONNECTION_REFUSED
+0x80004005"
+"Stack trace:
+NullPointerException at..."
+"Algo salió mal" sin más detalle.
+
+Heurística 10: Ayuda y documentación
+10Aunque mejor sin ayuda, debe ser fácil de buscar, contextual, listada por
+pasos.
+BUEN EJEMPLO
+Tooltips con shortcuts en hover.
+FAQ buscable.
+Onboarding interactivo en el
+primer uso.
+Tour guiado opcional.
+"Ayuda contextual" en cada panel.
+MAL EJEMPLO
+Manual PDF de 200 páginas que
+nadie lee.
+"Para más info, contactar a
+soporte" (sin link).
+Documentación en un Notion
+al que solo el dev tiene acceso
