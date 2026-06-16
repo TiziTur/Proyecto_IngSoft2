@@ -32,11 +32,16 @@ import com.aprovecha.app.ui.theme.Bosque50
 fun HomeCommerceScreen(
     onPublishPack: () -> Unit,
     onGoToProfile: () -> Unit,
+    onGoToPendingReservations: () -> Unit,
     viewModel: ReservationsViewModel = hiltViewModel()
 ) {
     val packsState by viewModel.commercePacksState.collectAsState()
+    val statsState by viewModel.commerceStatsState.collectAsState()
 
-    LaunchedEffect(Unit) { viewModel.loadCommercePacks() }
+    LaunchedEffect(Unit) {
+        viewModel.loadCommercePacks()
+        viewModel.loadPendingReservations()
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -72,7 +77,7 @@ fun HomeCommerceScreen(
             ) {
                 StatCard("$active", "Packs activos", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
                 StatCard("${packs.size}", "Total publicados", MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
-                StatCard("🌱", "Kg rescatados", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                StatCard("${statsState.completedCount}", "Entregas", MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
             }
 
             Row(
@@ -132,7 +137,12 @@ fun HomeCommerceScreen(
         AprovechaBottomBar(
             currentRoute = "home_commerce",
             isCommerce = true,
-            onNavigate = { route -> if (route == "profile") onGoToProfile() },
+            onNavigate = { route ->
+                when (route) {
+                    "profile" -> onGoToProfile()
+                    "pending_reservations" -> onGoToPendingReservations()
+                }
+            },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }

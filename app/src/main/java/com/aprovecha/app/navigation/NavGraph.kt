@@ -14,6 +14,7 @@ import com.aprovecha.app.feature.products.ui.HomeConsumerScreen
 import com.aprovecha.app.feature.products.ui.PackDetailScreen
 import com.aprovecha.app.feature.reservations.ui.HomeCommerceScreen
 import com.aprovecha.app.feature.reservations.ui.MyReservationsScreen
+import com.aprovecha.app.feature.reservations.ui.PendingReservationsScreen
 import com.aprovecha.app.feature.reservations.ui.PublishPackScreen
 
 object Routes {
@@ -26,6 +27,7 @@ object Routes {
     const val PUBLISH_PACK = "publish_pack"
     const val PROFILE = "profile"
     const val FAVORITES = "favorites"
+    const val PENDING_RESERVATIONS = "pending_reservations"
 
     fun packDetail(packId: Long) = "pack_detail/$packId"
 }
@@ -98,7 +100,14 @@ fun AprovechaNavGraph(navController: NavHostController) {
         composable(Routes.HOME_COMMERCE) {
             HomeCommerceScreen(
                 onPublishPack = { navController.navigate(Routes.PUBLISH_PACK) },
-                onGoToProfile = { navController.navigate(Routes.PROFILE) }
+                onGoToProfile = { navController.navigate(Routes.PROFILE) },
+                onGoToPendingReservations = { navController.navigate(Routes.PENDING_RESERVATIONS) }
+            )
+        }
+
+        composable(Routes.PENDING_RESERVATIONS) {
+            PendingReservationsScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 

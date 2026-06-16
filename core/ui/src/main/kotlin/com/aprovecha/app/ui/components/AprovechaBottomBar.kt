@@ -37,6 +37,7 @@ fun AprovechaBottomBar(
     )
     val commerceItems = listOf(
         BottomNavItem("Inicio", Icons.Default.Home, "home_commerce"),
+        BottomNavItem("Reservas", Icons.Default.DateRange, "pending_reservations"),
         BottomNavItem("Perfil", Icons.Default.Person, "profile")
     )
     val items = if (isCommerce) commerceItems else consumerItems
