@@ -2,9 +2,11 @@ package com.aprovecha.app.feature.products
 
 import com.aprovecha.app.common.util.Result
 import com.aprovecha.app.domain.model.FoodPack
-import com.aprovecha.app.domain.model.PackStatus
 import com.aprovecha.app.domain.model.Reservation
 import com.aprovecha.app.domain.model.ReservationStatus
+import com.aprovecha.app.domain.model.User
+import com.aprovecha.app.domain.model.UserRole
+import com.aprovecha.app.domain.repository.AuthRepository
 import com.aprovecha.app.domain.repository.PackRepository
 import com.aprovecha.app.domain.repository.ReservationRepository
 import com.aprovecha.app.feature.products.ui.PacksUiState
@@ -35,6 +37,7 @@ class ProductsViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var packRepository: PackRepository
     private lateinit var reservationRepository: ReservationRepository
+    private lateinit var authRepository: AuthRepository
     private lateinit var viewModel: ProductsViewModel
 
     @Before
@@ -42,6 +45,7 @@ class ProductsViewModelTest {
         Dispatchers.setMain(testDispatcher)
         packRepository = mockk()
         reservationRepository = mockk()
+        authRepository = mockk()
     }
 
     @After
@@ -67,6 +71,13 @@ class ProductsViewModelTest {
         fechaReserva = LocalDateTime.now()
     )
 
+    private fun buildUser(id: Long = 1L) = User(
+        id = id,
+        email = "user@test.com",
+        name = "Test User",
+        role = UserRole.CONSUMER
+    )
+
     // ── loadNearbyPacks ──────────────────────────────────────────────────────
 
     /**
@@ -78,9 +89,8 @@ class ProductsViewModelTest {
     fun `Given available packs When ViewModel initializes Then packsState emits Success`() = runTest {
         val packs = listOf(buildPack(1L), buildPack(2L))
         every { packRepository.getAvailablePacksNearby(any(), any(), any()) } returns flowOf(packs)
-        every { packRepository.getPacksByCommerce(any()) } returns flowOf(emptyList())
 
-        viewModel = ProductsViewModel(packRepository, reservationRepository)
+        viewModel = ProductsViewModel(packRepository, reservationRepository, authRepository)
         advanceUntilIdle()
 
         val state = viewModel.packsState.value
@@ -98,9 +108,8 @@ class ProductsViewModelTest {
         every {
             packRepository.getAvailablePacksNearby(any(), any(), any())
         } returns kotlinx.coroutines.flow.flow { throw RuntimeException("Network error") }
-        every { packRepository.getPacksByCommerce(any()) } returns flowOf(emptyList())
 
-        viewModel = ProductsViewModel(packRepository, reservationRepository)
+        viewModel = ProductsViewModel(packRepository, reservationRepository, authRepository)
         advanceUntilIdle()
 
         val state = viewModel.packsState.value
@@ -121,7 +130,7 @@ class ProductsViewModelTest {
         every { packRepository.getAvailablePacksNearby(any(), any(), any()) } returns flowOf(emptyList())
         coEvery { packRepository.getPackById(42L) } returns Result.Success(pack)
 
-        viewModel = ProductsViewModel(packRepository, reservationRepository)
+        viewModel = ProductsViewModel(packRepository, reservationRepository, authRepository)
         viewModel.loadPackDetail(42L)
         advanceUntilIdle()
 
@@ -138,7 +147,7 @@ class ProductsViewModelTest {
         every { packRepository.getAvailablePacksNearby(any(), any(), any()) } returns flowOf(emptyList())
         coEvery { packRepository.getPackById(any()) } returns Result.Error(NoSuchElementException())
 
-        viewModel = ProductsViewModel(packRepository, reservationRepository)
+        viewModel = ProductsViewModel(packRepository, reservationRepository, authRepository)
         viewModel.loadPackDetail(999L)
         advanceUntilIdle()
 
@@ -148,17 +157,18 @@ class ProductsViewModelTest {
     // ── reservePack ──────────────────────────────────────────────────────────
 
     /**
-     * Given: reserva exitosa
+     * Given: hay sesión activa y la reserva es exitosa
      * When: se llama reservePack
      * Then: reserveState emite Success
      */
     @Test
     fun `Given successful reservation When reservePack called Then reserveState emits Success`() = runTest {
         every { packRepository.getAvailablePacksNearby(any(), any(), any()) } returns flowOf(emptyList())
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
         coEvery { reservationRepository.createReservation(1L, 1L) } returns Result.Success(buildReservation())
 
-        viewModel = ProductsViewModel(packRepository, reservationRepository)
-        viewModel.reservePack(1L, 1L)
+        viewModel = ProductsViewModel(packRepository, reservationRepository, authRepository)
+        viewModel.reservePack(1L)
         advanceUntilIdle()
 
         assertTrue(viewModel.reserveState.value is ReserveUiState.Success)
@@ -172,17 +182,37 @@ class ProductsViewModelTest {
     @Test
     fun `Given pack unavailable When reservePack fails Then reserveState emits Error`() = runTest {
         every { packRepository.getAvailablePacksNearby(any(), any(), any()) } returns flowOf(emptyList())
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
         coEvery {
             reservationRepository.createReservation(any(), any())
         } returns Result.Error(IllegalStateException("Pack ya reservado (REQ-NF01)"))
 
-        viewModel = ProductsViewModel(packRepository, reservationRepository)
-        viewModel.reservePack(1L, 1L)
+        viewModel = ProductsViewModel(packRepository, reservationRepository, authRepository)
+        viewModel.reservePack(1L)
         advanceUntilIdle()
 
         val state = viewModel.reserveState.value
         assertTrue(state is ReserveUiState.Error)
         assertTrue((state as ReserveUiState.Error).message.contains("Pack ya reservado"))
+    }
+
+    /**
+     * Given: no hay sesión activa
+     * When: se llama reservePack
+     * Then: reserveState emite Error sin llamar al repositorio de reservas
+     */
+    @Test
+    fun `Given no session When reservePack called Then reserveState emits Error`() = runTest {
+        every { packRepository.getAvailablePacksNearby(any(), any(), any()) } returns flowOf(emptyList())
+        coEvery { authRepository.getCurrentUser() } returns null
+
+        viewModel = ProductsViewModel(packRepository, reservationRepository, authRepository)
+        viewModel.reservePack(1L)
+        advanceUntilIdle()
+
+        val state = viewModel.reserveState.value
+        assertTrue(state is ReserveUiState.Error)
+        assertTrue((state as ReserveUiState.Error).message.contains("Sesión"))
     }
 
     /**
@@ -193,10 +223,11 @@ class ProductsViewModelTest {
     @Test
     fun `Given Success state When resetReserveState called Then state returns to Idle`() = runTest {
         every { packRepository.getAvailablePacksNearby(any(), any(), any()) } returns flowOf(emptyList())
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
         coEvery { reservationRepository.createReservation(any(), any()) } returns Result.Success(buildReservation())
 
-        viewModel = ProductsViewModel(packRepository, reservationRepository)
-        viewModel.reservePack(1L, 1L)
+        viewModel = ProductsViewModel(packRepository, reservationRepository, authRepository)
+        viewModel.reservePack(1L)
         advanceUntilIdle()
 
         viewModel.resetReserveState()

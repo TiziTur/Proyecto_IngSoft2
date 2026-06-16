@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aprovecha.app.common.util.Result
 import com.aprovecha.app.domain.model.FoodPack
+import com.aprovecha.app.domain.repository.AuthRepository
 import com.aprovecha.app.domain.repository.PackRepository
 import com.aprovecha.app.domain.repository.ReservationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,14 +34,15 @@ sealed class ReserveUiState {
 @HiltViewModel
 class ProductsViewModel @Inject constructor(
     private val packRepository: PackRepository,
-    private val reservationRepository: ReservationRepository
+    private val reservationRepository: ReservationRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private companion object {
         const val DEFAULT_LATITUDE = -31.4
         const val DEFAULT_LONGITUDE = -64.18
         const val DEFAULT_RADIUS_KM = 5.0
-        const val DEFAULT_USER_ID = 1L
+        const val SESSION_ERROR_MESSAGE = "Sesión no encontrada. Iniciá sesión nuevamente."
     }
 
     private val _packsState = MutableStateFlow<PacksUiState>(PacksUiState.Loading)
@@ -79,9 +81,14 @@ class ProductsViewModel @Inject constructor(
         }
     }
 
-    // @REQ-F04: Reservar pack (userId hardcodeado = 1 para MVP)
-    fun reservePack(packId: Long, userId: Long = DEFAULT_USER_ID) {
+    // @REQ-F04: Reservar pack usando el usuario de la sesión activa
+    fun reservePack(packId: Long) {
         viewModelScope.launch {
+            val userId = authRepository.getCurrentUser()?.id
+            if (userId == null) {
+                _reserveState.value = ReserveUiState.Error(SESSION_ERROR_MESSAGE)
+                return@launch
+            }
             _reserveState.value = ReserveUiState.Loading
             _reserveState.value = when (val result = reservationRepository.createReservation(packId, userId)) {
                 is Result.Success -> ReserveUiState.Success
