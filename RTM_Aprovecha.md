@@ -1,7 +1,7 @@
 # Matriz de Trazabilidad de Requerimientos (RTM)
 ## Proyecto: Aprovecha! — Sistema de Gestión de Rescate de Alimentos
 ### Grupo: Gang of Four | Materia: Ingeniería de Software II — IUA
-### Versión: 2.0 | Fecha: Mayo 2026 | Referencia: IEEE 730 §7
+### Versión: 3.0 | Fecha: Junio 2026 | Referencia: IEEE 730 §7
 
 ---
 
@@ -33,6 +33,9 @@
 | **REQ-F05** | Estado RESERVED → WITHDRAWN | `:core:data` | `ReservationRepositoryImpl.markAsWithdrawn()` | `ReservationEntity.status` | `MarkReservationWithdrawnUseCaseTest.kt` | detekt + test | ✅ Implementado |
 | **REQ-F06** | El usuario cancela una reserva antes del retiro | `:feature:reservations` | `CancelReservationUseCase` | `ReservationDao.cancelReservation()` | `CancelReservationUseCaseTest.kt` | detekt + test | ✅ Implementado |
 | **REQ-F06** | Estado RESERVED → CANCELLED; no cancelar WITHDRAWN | `:core:data` | `ReservationRepositoryImpl.cancelReservation()` | `ReservationEntity.status` | `CancelReservationUseCaseTest.kt` | detekt + test | ✅ Implementado |
+| **REQ-F07** | El consumidor marca/desmarca packs como favoritos | `:feature:products` | `FavoriteRepository` + `ProductsViewModel` | `FavoriteDao` / `FavoriteEntity` | `FavoriteRepositoryImplTest.kt` | detekt + test | ✅ Implementado |
+| **REQ-F07** | Toggle: si no es favorito → agregar; si ya es favorito → eliminar | `:core:data` | `FavoriteRepositoryImpl.toggleFavorite()` | `FavoriteDao.addFavorite()` / `removeFavorite()` | `FavoriteRepositoryImplTest.kt` | detekt + test | ✅ Implementado |
+| **REQ-F07** | El consumidor ve su lista de packs favoritos | `:feature:products` | `FavoritesScreen` + `ProductsViewModel.favoritePackIds` | `FavoriteDao.getFavoritePackIds()` | `FavoriteRepositoryImplTest.kt` | detekt + test | ✅ Implementado |
 
 ---
 
@@ -42,6 +45,7 @@
 |----|-------------|--------------------------|-------------|------------------|-----------|--------|
 | **REQ-NF01** | Exclusividad de reservas bajo concurrencia | Transacción atómica Room (`@Transaction`) + test coroutines concurrentes | `PackDao.reservePackAtomically()` | `ReservationConcurrencyTest.kt` | detekt + test | ✅ Implementado |
 | **REQ-NF01** | 10 usuarios concurrentes → solo 1 reserva exitosa | Coroutines `async/awaitAll` + `AtomicInteger` | JUnit4 + `kotlinx-coroutines-test` | `ReservationConcurrencyTest.kt` | test | ✅ Implementado |
+| **REQ-NF01-S** | Sesión persistente entre reinicios de la app | DataStore (Jetpack) + `SessionManager` | `AuthRepositoryImpl` + `SessionManager` | `SessionManagerTest.kt` | detekt + test | ✅ Implementado |
 | **REQ-NF02** | APK no supera 50 MB | Medición APK release | Gradle build + ProGuard/R8 | `app/build.gradle.kts` (`isMinifyEnabled`) | build (manual) | ⚠️ Parcial |
 
 ---
@@ -71,6 +75,14 @@
 | `CancelReservationUseCase.kt` | `invoke()` | REQ-F06 | `@Requirement("REQ-F06", ...)` |
 | `PackStatus.kt` | enum | REQ-F02, REQ-F04, REQ-F05, REQ-F06, REQ-NF01 | `// @REQ-FXX` en cada valor |
 | `ReservationStatus.kt` (en `Reservation.kt`) | enum | REQ-F04, REQ-F05, REQ-F06 | `// @REQ-FXX` en cada valor |
+| `FavoriteRepository.kt` | interfaz | REQ-F07 | `// @REQ-F07` en KDoc |
+| `FavoriteRepositoryImpl.kt` | clase | REQ-F07 | implementa `toggleFavorite()`, `getFavoritePackIds()` |
+| `FavoriteDao.kt` | interfaz Room | REQ-F07 | `addFavorite()`, `removeFavorite()`, `getFavoritePackIds()`, `isFavorite()` |
+| `FavoriteEntity.kt` | entidad Room | REQ-F07 | tabla `favorites` con `userId` + `packId` |
+| `SessionManager.kt` | DataStore wrapper | REQ-F01 sesión | `saveSession()`, `getCurrentUser()`, `clearSession()` |
+| `ProfileScreen.kt` + `ProfileViewModel.kt` | pantalla y VM | REQ-F01 sesión | carga usuario activo, expone `logout()` |
+| `FavoritesScreen.kt` | pantalla | REQ-F07 | muestra lista de packs favoritos del usuario |
+| `PendingReservationsScreen.kt` | pantalla | REQ-F05 | panel de comercio con reservas RESERVED pendientes de retiro |
 
 ---
 
@@ -87,6 +99,7 @@
 | `LoginUserUseCaseTest.kt` | REQ-F01 | `givenBothFieldsBlank_whenLogin_thenReturnsError` | ✅ |
 | `LoginUserUseCaseTest.kt` | REQ-F01 | `givenUnknownEmail_whenLogin_thenPropagatesRepositoryError` | ✅ |
 | `LoginUserUseCaseTest.kt` | REQ-F01 | `givenEmailWithSpaces_whenLogin_thenEmailIsTrimmedBeforeRepository` | ✅ |
+| `LoginUserUseCaseTest.kt` | REQ-F01 | `givenWrongPassword_whenLogin_thenPropagatesRepositoryError` | ✅ |
 | `RegisterUserUseCaseTest.kt` | REQ-F01 | `givenValidCommerceData_whenRegister_thenReturnsSuccessWithUser` | ✅ |
 | `RegisterUserUseCaseTest.kt` | REQ-F01 | `givenValidConsumerData_whenRegister_thenReturnsSuccessWithUser` | ✅ |
 | `RegisterUserUseCaseTest.kt` | REQ-F01 | `givenEmptyEmail_whenRegister_thenReturnsError` | ✅ |
@@ -120,10 +133,15 @@
 | `AuthRepositoryImplTest.kt` | REQ-F01 | `Given new email When register commerce Then returns Success with COMMERCE role` | ✅ |
 | `AuthRepositoryImplTest.kt` | REQ-F01 | `Given existing email When register called Then returns Error with duplicate message` | ✅ |
 | `AuthRepositoryImplTest.kt` | REQ-F01 | `Given DAO throws When register called Then returns Result Error` | ✅ |
+| `AuthRepositoryImplTest.kt` | REQ-F01 | `Given successful register When called Then sessionManager saveSession invoked with new user` | ✅ |
 | `AuthRepositoryImplTest.kt` | REQ-F01 | `Given valid credentials When login called Then returns Success with user` | ✅ |
 | `AuthRepositoryImplTest.kt` | REQ-F01 | `Given unknown email When login called Then returns Error user not found` | ✅ |
 | `AuthRepositoryImplTest.kt` | REQ-F01 | `Given wrong password When login called Then returns Error wrong password` | ✅ |
+| `AuthRepositoryImplTest.kt` | REQ-F01 | `Given successful login When called Then sessionManager saveSession invoked with user` | ✅ |
 | `AuthRepositoryImplTest.kt` | REQ-F01 | `Given successful register When insert called Then DAO insertUser called once` | ✅ |
+| `AuthRepositoryImplTest.kt` | REQ-F01 | `Given saved session When getCurrentUser called Then returns sessionManager user` | ✅ |
+| `AuthRepositoryImplTest.kt` | REQ-F01 | `Given no saved session When getCurrentUser called Then returns null` | ✅ |
+| `AuthRepositoryImplTest.kt` | REQ-F01 | `Given active session When logout called Then sessionManager clearSession invoked` | ✅ |
 | `PackRepositoryImplTest.kt` | REQ-F02 | `Given valid pack When publishPack called Then returns Success with assigned id` | ✅ |
 | `PackRepositoryImplTest.kt` | REQ-F02 | `Given DAO throws When publishPack called Then returns Result Error` | ✅ |
 | `PackRepositoryImplTest.kt` | REQ-F02 | `Given valid pack When publishPack Then DAO insertPack called once` | ✅ |
@@ -150,6 +168,24 @@
 | `ReservationRepositoryImplTest.kt` | REQ-F04 | `Given existing reservation When getReservationById called Then returns Success` | ✅ |
 | `ReservationRepositoryImplTest.kt` | REQ-F04 | `Given nonexistent reservation When getReservationById called Then returns Error` | ✅ |
 
+### core:data — SessionManager Tests
+
+| Archivo | Requerimiento | Casos de Test | Estado |
+|---------|---------------|---------------|--------|
+| `SessionManagerTest.kt` | REQ-F01 | `Given no session When getCurrentUser called Then returns null` | ✅ |
+| `SessionManagerTest.kt` | REQ-F01 | `Given saved session When getCurrentUser called Then returns same user` | ✅ |
+| `SessionManagerTest.kt` | REQ-F01 | `Given saved session When clearSession called Then getCurrentUser returns null` | ✅ |
+| `SessionManagerTest.kt` | REQ-F01 | `Given consumer session saved When new session saved Then getCurrentUser returns new user` | ✅ |
+
+### core:data — Favorite Repository Tests
+
+| Archivo | Requerimiento | Casos de Test | Estado |
+|---------|---------------|---------------|--------|
+| `FavoriteRepositoryImplTest.kt` | REQ-F07 | `Given user has favorites When getFavoritePackIds called Then returns Set of ids` | ✅ |
+| `FavoriteRepositoryImplTest.kt` | REQ-F07 | `Given pack not favorited When toggleFavorite called Then addFavorite is invoked` | ✅ |
+| `FavoriteRepositoryImplTest.kt` | REQ-F07 | `Given pack already favorited When toggleFavorite called Then removeFavorite is invoked` | ✅ |
+| `FavoriteRepositoryImplTest.kt` | REQ-F07 | `Given user has no favorites When getFavoritePackIds called Then returns empty Set` | ✅ |
+
 ### feature — ViewModel Tests
 
 | Archivo | Requerimiento | Casos de Test | Estado |
@@ -165,6 +201,10 @@
 | `AuthViewModelTest.kt` | REQ-F01 | `Given password too short When register called Then uiState emits Error` | ✅ |
 | `AuthViewModelTest.kt` | REQ-F01 | `Given duplicate email When register called Then uiState emits Error` | ✅ |
 | `AuthViewModelTest.kt` | REQ-F01 | `Given Success state When resetState called Then uiState returns to Idle` | ✅ |
+| `AuthViewModelTest.kt` | REQ-F01 | `Given active session When logout called Then authRepository logout invoked and uiState is Idle` | ✅ |
+| `ProfileViewModelTest.kt` | REQ-F01 | `Given active session When ViewModel initializes Then user is loaded` | ✅ |
+| `ProfileViewModelTest.kt` | REQ-F01 | `Given no session When ViewModel initializes Then user is null` | ✅ |
+| `ProfileViewModelTest.kt` | REQ-F01 | `Given active session When logout called Then repository logout invoked and user is null` | ✅ |
 | `ProductsViewModelTest.kt` | REQ-F03 | `Given available packs When ViewModel initializes Then packsState emits Success` | ✅ |
 | `ProductsViewModelTest.kt` | REQ-F03 | `Given repository throws When loading packs Then packsState emits Error` | ✅ |
 | `ProductsViewModelTest.kt` | REQ-F03 | `Given valid packId When loadPackDetail called Then selectedPack is set` | ✅ |
@@ -174,51 +214,79 @@
 | `ProductsViewModelTest.kt` | REQ-F04 | `Given Success state When resetReserveState called Then state returns to Idle` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F06 | `Given user has reservations When loadUserReservations called Then state emits Success` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F06 | `Given repository throws When loadUserReservations fails Then state emits Error` | ✅ |
+| `ReservationsViewModelTest.kt` | REQ-F06 | `Given no session When loadUserReservations called Then state emits Error` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F06 | `Given RESERVED reservation When cancelReservation called Then actionState emits Success` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F06 | `Given WITHDRAWN reservation When cancelReservation called Then actionState emits Error` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F05 | `Given RESERVED reservation When markAsWithdrawn called Then actionState emits Success` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F05 | `Given nonexistent reservation When markAsWithdrawn called Then actionState emits Error` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F02 | `Given valid pack When publishPack called Then actionState emits Success` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F02 | `Given invalid pack When publishPack fails validation Then actionState emits Error` | ✅ |
+| `ReservationsViewModelTest.kt` | REQ-F02 | `Given no session When publishPack called Then actionState emits Error` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F02 | `Given Success actionState When resetAction called Then returns to Idle` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F02 | `Given commerce has packs When loadCommercePacks called Then commercePacksState emits Success` | ✅ |
 | `ReservationsViewModelTest.kt` | REQ-F02 | `Given packRepository throws When loadCommercePacks called Then commercePacksState emits Error` | ✅ |
+| `ReservationsViewModelTest.kt` | REQ-F02 | `Given no session When loadCommercePacks called Then commercePacksState emits Error` | ✅ |
+| `ReservationsViewModelTest.kt` | REQ-F05 | `Given commerce has RESERVED reservations When loadPendingReservations called Then pendingReservationsState emits Success` | ✅ |
+| `ReservationsViewModelTest.kt` | REQ-F05 | `Given no session When loadPendingReservations called Then pendingReservationsState emits Error` | ✅ |
+| `ReservationsViewModelTest.kt` | REQ-F05 | `Given mixed reservations When loadPendingReservations called Then commerceStatsState has correct counts` | ✅ |
+| `ReservationsViewModelTest.kt` | REQ-F05 | `Given repository throws When loadPendingReservations called Then pendingReservationsState emits Error` | ✅ |
 
 ---
 
 ## Mapa de Cobertura por Requerimiento
 
 ```
-REQ-F01 → RegisterUserUseCase / LoginUserUseCase / AuthRepositoryImpl
-          → RegisterUserUseCaseTest (6 tests) + AuthRepositoryImplTest (8 tests) ✅
+REQ-F01 → RegisterUserUseCase / LoginUserUseCase / AuthRepositoryImpl / SessionManager
+          → LoginUserUseCaseTest (8) + RegisterUserUseCaseTest (6)
+          + AuthRepositoryImplTest (13) + SessionManagerTest (4)
+          + AuthViewModelTest (12) + ProfileViewModelTest (3)                    ✅
 
 REQ-F02 → PublishPackUseCase / PackRepositoryImpl / ReservationsViewModel
-          → PublishPackUseCaseTest (5 tests) + PackRepositoryImplTest (4 tests)
-          + ReservationsViewModelTest (3 tests)                                  ✅
+          → PublishPackUseCaseTest (5) + PackRepositoryImplTest (3 tests REQ-F02)
+          + ReservationsViewModelTest (4 tests REQ-F02)                          ✅
 
 REQ-F03 → GetNearbyPacksUseCase / PackRepositoryImpl / ProductsViewModel
-          → PackRepositoryImplTest (5 tests) + ProductsViewModelTest (4 tests)   ✅
+          → GetNearbyPacksUseCaseTest (5) + PackRepositoryImplTest (5 tests REQ-F03)
+          + ProductsViewModelTest (4 tests REQ-F03)                              ✅
 
 REQ-F04 → ReservePackUseCase / PackDao.reservePackAtomically() / ProductsViewModel
-          → ReservePackUseCaseTest (2 tests) + ProductsViewModelTest (3 tests)   ✅
+          → ReservePackUseCaseTest (2) + ReservationRepositoryImplTest (3 tests REQ-F04)
+          + ProductsViewModelTest (3 tests REQ-F04)                              ✅
 
 REQ-F05 → MarkReservationWithdrawnUseCase / ReservationsViewModel
-          → MarkReservationWithdrawnUseCaseTest (2 tests)
-          + ReservationsViewModelTest (2 tests)                                   ✅
+          → MarkReservationWithdrawnUseCaseTest (2)
+          + ReservationRepositoryImplTest (3 tests REQ-F05)
+          + ReservationsViewModelTest (6 tests REQ-F05)                          ✅
 
 REQ-F06 → CancelReservationUseCase / ReservationsViewModel
-          → CancelReservationUseCaseTest (2 tests)
-          + ReservationsViewModelTest (4 tests)                                   ✅
+          → CancelReservationUseCaseTest (2)
+          + ReservationRepositoryImplTest (4 tests REQ-F06)
+          + ReservationsViewModelTest (3 tests REQ-F06)                          ✅
+
+REQ-F07 → FavoriteRepository / FavoriteRepositoryImpl / ProductsViewModel
+          → FavoriteRepositoryImplTest (4 tests)                                ✅
 
 REQ-NF01→ PackDao.reservePackAtomically() (Room @Transaction)
-          → ReservePackUseCaseTest (1 test) + ReservationConcurrencyTest (2 tests) ✅
+          → ReservePackUseCaseTest (1) + ReservationConcurrencyTest (2)
+          + ReservationRepositoryImplTest (2 tests REQ-NF01)                    ✅
 
-REQ-NF02→ ProGuard/R8 en release build                                           ⚠️ Parcial
+REQ-NF02→ ProGuard/R8 en release build                                          ⚠️ Parcial
 ```
 
-**Total de tests implementados: 90**
+**Total de tests implementados: 118**
+
+| Módulo | Tests |
+|--------|-------|
+| `core:domain` | 32 |
+| `core:data` | 46 |
+| `feature:auth` | 15 |
+| `feature:products` | 7 |
+| `feature:reservations` | 18 |
+| **Total** | **118** |
+
+**Cobertura JaCoCo (último build):** INSTRUCTION=84.73% / BRANCH=80.41% — supera umbral IEEE 730 §5.3 (70%/60%)
 
 ---
 
-*Última actualización: Mayo 2026 — Versión 2.0*
+*Última actualización: Junio 2026 — Versión 3.0*
 *Mantener sincronizado con cada merge a main.*

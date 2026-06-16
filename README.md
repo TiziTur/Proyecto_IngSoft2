@@ -22,12 +22,13 @@
 
 ## Funcionalidades
 
-- **REQ-F01** — Registro y login de usuarios con rol CONSUMER o COMMERCE
+- **REQ-F01** — Registro y login de usuarios con rol CONSUMER o COMMERCE; sesión persistida con DataStore
 - **REQ-F02** — Los comercios publican packs con nombre, precio original, precio con descuento y cantidad
 - **REQ-F03** — Los consumidores ven packs disponibles cercanos (radio configurable, default 5 km)
 - **REQ-F04** — Reserva de pack con exclusividad garantizada (transacción atómica Room)
 - **REQ-F05** — El comercio marca la reserva como retirada (RESERVED → WITHDRAWN)
 - **REQ-F06** — El consumidor puede cancelar una reserva antes del retiro (RESERVED → CANCELLED)
+- **REQ-F07** — El consumidor puede marcar/desmarcar packs como favoritos y ver su lista de favoritos
 
 ---
 
@@ -56,12 +57,12 @@ El proyecto usa **MVVM + Clean Architecture** dividida en 8 módulos Gradle:
 ```
 app/                    → Punto de entrada (MainActivity, NavGraph, AprovechaApplication)
 core/common/            → Result<T>, @Requirement annotation
-core/domain/            → Modelos, interfaces Repository, UseCases
-core/data/              → Room (DAOs, entidades), RepositoryImpl, Hilt modules
+core/domain/            → Modelos, interfaces Repository, UseCases, FavoriteRepository
+core/data/              → Room (DAOs, entidades), RepositoryImpl, SessionManager, Hilt modules
 core/ui/                → Tema Compose, colores, tipografía
-feature/auth/           → Login y Registro
-feature/products/       → Lista de packs y detalle (consumidor)
-feature/reservations/   → Mis reservas y panel del comercio
+feature/auth/           → Login, Registro y Perfil (ProfileScreen, ProfileViewModel)
+feature/products/       → Lista de packs, detalle y Favoritos (FavoritesScreen)
+feature/reservations/   → Mis reservas, panel del comercio y Reservas Pendientes
 ```
 
 Ver [ARCHITECTURE.md](./ARCHITECTURE.md) para más detalle.
@@ -92,7 +93,7 @@ cd Proyecto_IngSoft2
 
 ## Tests
 
-El proyecto tiene **90 tests unitarios** distribuidos en 5 módulos:
+El proyecto tiene **118 tests unitarios** distribuidos en 5 módulos:
 
 ```bash
 # Ejecutar todos los tests
@@ -115,12 +116,15 @@ El proyecto tiene **90 tests unitarios** distribuidos en 5 módulos:
 | `core:domain` | `MarkReservationWithdrawnUseCaseTest` | 2 |
 | `core:domain` | `CancelReservationUseCaseTest` | 2 |
 | `core:domain` | `ReservationConcurrencyTest` | 2 |
-| `core:data` | `AuthRepositoryImplTest` | 8 |
-| `core:data` | `PackRepositoryImplTest` | 10 |
+| `core:data` | `AuthRepositoryImplTest` | 13 |
+| `core:data` | `PackRepositoryImplTest` | 12 |
 | `core:data` | `ReservationRepositoryImplTest` | 13 |
-| `feature:auth` | `AuthViewModelTest` | 11 |
+| `core:data` | `FavoriteRepositoryImplTest` | 4 |
+| `core:data` | `SessionManagerTest` | 4 |
+| `feature:auth` | `AuthViewModelTest` | 12 |
+| `feature:auth` | `ProfileViewModelTest` | 3 |
 | `feature:products` | `ProductsViewModelTest` | 7 |
-| `feature:reservations` | `ReservationsViewModelTest` | 9 |
+| `feature:reservations` | `ReservationsViewModelTest` | 18 |
 
 ---
 
@@ -162,6 +166,11 @@ Artefactos generados: reporte Detekt HTML, reporte JaCoCo HTML/XML
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Arquitectura, módulos, stack y comandos |
 | [RTM_Aprovecha.md](./RTM_Aprovecha.md) | Matriz de trazabilidad requerimientos ↔ código ↔ tests |
 | [SQA_Plan_Aprovecha.docx](./SQA_Plan_Aprovecha.docx) | Plan SQA completo (IEEE 730) |
+| [docs/testing/plan-de-pruebas.md](./docs/testing/plan-de-pruebas.md) | Plan de pruebas (IEEE 829) |
+| [docs/testing/casos-de-prueba.md](./docs/testing/casos-de-prueba.md) | 16 casos documentados (caja negra + blanca) |
+| [docs/testing/reporte-defectos.md](./docs/testing/reporte-defectos.md) | 6 defectos reportados (1 resuelto) |
+| [docs/ux-ui/diseno-pantallas.md](./docs/ux-ui/diseno-pantallas.md) | Wireframes + mockups + análisis heurístico Nielsen |
+| [docs/reflexion-final.md](./docs/reflexion-final.md) | Reflexión final del equipo — Hito 5 |
 | [QUICK_START.md](./QUICK_START.md) | Guía rápida para nuevos desarrolladores |
 | [REFERENCES.md](./REFERENCES.md) | Referencias y recursos útiles |
 

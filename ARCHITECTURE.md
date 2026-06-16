@@ -10,12 +10,18 @@ Proyecto_IngSoft2/
 ├── core/
 │   ├── common/                 # Utilidades compartidas: Result<T>, @Requirement
 │   ├── data/                   # Room (DAOs, entidades), implementaciones de repositorios, Hilt modules
+│   │                           # SessionManager (DataStore), FavoriteRepositoryImpl
 │   ├── domain/                 # Modelos de dominio, interfaces de repositorios, use cases
+│   │                           # FavoriteRepository (interfaz)
 │   └── ui/                     # Tema Compose, colores, tipografía compartida
 ├── feature/
-│   ├── auth/                   # Login y registro (LoginScreen, RegisterScreen, AuthViewModel)
-│   ├── products/               # Lista de packs y detalle (HomeConsumerScreen, PackDetailScreen, ProductsViewModel)
-│   └── reservations/           # Mis reservas y panel del comercio (MyReservationsScreen, HomeCommerceScreen, PublishPackScreen, ReservationsViewModel)
+│   ├── auth/                   # Login, registro y perfil (LoginScreen, RegisterScreen, ProfileScreen)
+│   │                           # AuthViewModel, ProfileViewModel
+│   ├── products/               # Lista de packs, detalle y favoritos (HomeConsumerScreen, PackDetailScreen)
+│   │                           # FavoritesScreen, ProductsViewModel
+│   └── reservations/           # Mis reservas, panel del comercio y reservas pendientes
+│                               # MyReservationsScreen, HomeCommerceScreen, PublishPackScreen
+│                               # PendingReservationsScreen, ReservationsViewModel
 └── config/
     └── detekt/                 # Configuración Detekt (detekt.yml)
 ```
@@ -79,8 +85,13 @@ Ver [RTM_Aprovecha.md](./RTM_Aprovecha.md) para la matriz completa.
 
 ```
 LOGIN ──(éxito CONSUMER)──► HOME_CONSUMER ──► PACK_DETAIL/{id} ──► MY_RESERVATIONS
+      │                           │                                        │
+      │                           └──► FAVORITES                    (filtro TODOS/
+      │                                                           RETIRADOS/CANCELADOS)
       ──(éxito COMMERCE)──► HOME_COMMERCE ──► PUBLISH_PACK
+      │                           └──► PENDING_RESERVATIONS
       ──(sin cuenta)──────► REGISTER
+      └── (cualquier rol) ──► PROFILE (cierre de sesión)
 ```
 
 ## Comandos útiles
@@ -103,4 +114,4 @@ LOGIN ──(éxito CONSUMER)──► HOME_CONSUMER ──► PACK_DETAIL/{id} 
 ```
 
 ---
-**Última actualización**: 20/05/2026
+**Última actualización**: 16/06/2026

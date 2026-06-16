@@ -31,12 +31,13 @@ Este documento describe el plan de pruebas para el sistema **Aprovecha**, una ap
 
 | Requisito | Descripción |
 |-----------|-------------|
-| REQ-F01 | Registro y login de comercios y consumidores |
+| REQ-F01 | Registro, login y gestión de sesión persistente (SessionManager + DataStore) |
 | REQ-F02 | Publicación de packs de alimentos con descuento |
 | REQ-F03 | Listado de packs disponibles cercanos al usuario |
 | REQ-F04 | Reserva de un pack por parte de un consumidor |
 | REQ-F05 | Marcado de reserva como retirada por el comercio |
 | REQ-F06 | Cancelación de reserva por el consumidor |
+| REQ-F07 | Favoritos: marcar/desmarcar packs y ver lista de favoritos |
 | REQ-NF01 | Garantía de exclusividad: un pack solo puede reservarse una vez |
 
 ---
@@ -80,11 +81,11 @@ Este documento describe el plan de pruebas para el sistema **Aprovecha**, una ap
 
 ### 4.2 Criterios de salida (para considerar las pruebas completas)
 
-- Todos los tests automatizados pasan (BUILD SUCCESSFUL)
-- Cobertura de instrucciones ≥ 70% en módulos principales
-- Cobertura de ramas ≥ 60% en módulos principales
-- Al menos 15 casos de prueba documentados (caja negra + caja blanca)
-- Al menos 5 defectos formalmente reportados
+- Todos los tests automatizados pasan (BUILD SUCCESSFUL) ✅
+- Cobertura de instrucciones ≥ 70% en módulos principales ✅ (84.73% global)
+- Cobertura de ramas ≥ 60% en módulos principales ✅ (80.41% global)
+- Al menos 15 casos de prueba documentados (caja negra + caja blanca) ✅ (16 casos en casos-de-prueba.md)
+- Al menos 5 defectos formalmente reportados ✅ (6 defectos, 1 resuelto)
 
 ### 4.3 Criterios de cobertura (IEEE 730 §5.3)
 
@@ -101,28 +102,39 @@ Configurado en `jacoco.gradle.kts` y verificado con `./gradlew jacocoTestCoverag
 
 ```
 core/domain/src/test/
-  ├── RegisterUserUseCaseTest.kt       (5 tests  — REQ-F01)
-  ├── LoginUserUseCaseTest.kt          (7 tests  — REQ-F01)
-  ├── PublishPackUseCaseTest.kt        (5 tests  — REQ-F02)
-  ├── GetNearbyPacksUseCaseTest.kt     (5 tests  — REQ-F03)
-  ├── ReservePackUseCaseTest.kt        (2 tests  — REQ-F04)
+  ├── LoginUserUseCaseTest.kt               (8 tests  — REQ-F01)
+  ├── RegisterUserUseCaseTest.kt            (6 tests  — REQ-F01)
+  ├── PublishPackUseCaseTest.kt             (5 tests  — REQ-F02)
+  ├── GetNearbyPacksUseCaseTest.kt          (5 tests  — REQ-F03)
+  ├── ReservePackUseCaseTest.kt             (2 tests  — REQ-F04)
   ├── MarkReservationWithdrawnUseCaseTest.kt (2 tests — REQ-F05)
-  ├── CancelReservationUseCaseTest.kt  (2 tests  — REQ-F06)
-  └── ReservationConcurrencyTest.kt    (2 tests  — REQ-NF01)
+  ├── CancelReservationUseCaseTest.kt       (2 tests  — REQ-F06)
+  └── ReservationConcurrencyTest.kt         (2 tests  — REQ-NF01)
+                                             Subtotal: 32 tests
 
 core/data/src/test/
-  ├── AuthRepositoryImplTest.kt        (8 tests  — REQ-F01)
-  ├── PackRepositoryImplTest.kt        (12 tests — REQ-F02, REQ-F03)
-  └── ReservationRepositoryImplTest.kt (12 tests — REQ-F04, REQ-F05, REQ-F06, REQ-NF01)
+  ├── AuthRepositoryImplTest.kt             (13 tests — REQ-F01, sesión)
+  ├── PackRepositoryImplTest.kt             (12 tests — REQ-F02, REQ-F03)
+  ├── ReservationRepositoryImplTest.kt      (13 tests — REQ-F04, REQ-F05, REQ-F06, REQ-NF01)
+  ├── FavoriteRepositoryImplTest.kt         (4 tests  — REQ-F07)
+  └── SessionManagerTest.kt                 (4 tests  — REQ-F01 sesión)
+                                             Subtotal: 46 tests
+
+feature/auth/src/test/
+  ├── AuthViewModelTest.kt                  (12 tests — REQ-F01)
+  └── ProfileViewModelTest.kt              (3 tests  — REQ-F01 sesión/logout)
+                                             Subtotal: 15 tests
 
 feature/products/src/test/
-  └── ProductsViewModelTest.kt         (7 tests  — REQ-F03, REQ-F04)
+  └── ProductsViewModelTest.kt              (7 tests  — REQ-F03, REQ-F04)
+                                             Subtotal: 7 tests
 
 feature/reservations/src/test/
-  └── ReservationsViewModelTest.kt     (12 tests — REQ-F02, REQ-F05, REQ-F06)
+  └── ReservationsViewModelTest.kt          (18 tests — REQ-F02, REQ-F05, REQ-F06, sesión)
+                                             Subtotal: 18 tests
 ```
 
-**Total: 81 tests automatizados**
+**Total: 118 tests automatizados**
 
 ---
 
@@ -164,7 +176,11 @@ feature/reservations/src/test/
 |-----------|--------|
 | Implementación de casos de prueba unitarios | ✅ Completado |
 | Configuración de JaCoCo | ✅ Completado |
-| Verificación de cobertura ≥ 70% | ✅ Completado |
+| Verificación de cobertura ≥ 70% | ✅ Completado (84.73% instrucciones / 80.41% ramas) |
 | Documentación de plan de pruebas | ✅ Completado |
-| Documentación de casos de prueba | ✅ Completado |
-| Reporte de defectos | ✅ Completado |
+| Documentación de casos de prueba | ✅ Completado (16 casos) |
+| Reporte de defectos | ✅ Completado (6 defectos, 1 resuelto) |
+| Tests de SessionManager (REQ-F01 sesión) | ✅ Completado (SessionManagerTest + AuthRepositoryImplTest) |
+| Tests de Favoritos (REQ-F07) | ✅ Completado (FavoriteRepositoryImplTest) |
+| Tests de Perfil/Logout | ✅ Completado (ProfileViewModelTest) |
+| Tests de Reservas Pendientes | ✅ Completado (ReservationsViewModelTest expandido) |

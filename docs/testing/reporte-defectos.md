@@ -14,7 +14,7 @@
 |----|-----------|--------|-------------------|--------|
 | DEF-001 | Alta | `AuthRepositoryImpl` | Password hashing inseguro con `hashCode()` | Abierto |
 | DEF-002 | Media | `PackRepositoryImpl` | `getAvailablePacksNearby()` ignora coordenadas geográficas | Abierto |
-| DEF-003 | Alta | `AuthRepositoryImpl` | `getCurrentUser()` siempre retorna null | Abierto |
+| DEF-003 | Alta | `AuthRepositoryImpl` | `getCurrentUser()` siempre retorna null | ✅ Resuelto |
 | DEF-004 | Media | `ReservationRepositoryImpl` | `cancelReservation()` permite cancelar reservas ya CANCELLED | Abierto |
 | DEF-005 | Baja | `RegisterUserUseCase` | No se valida el formato del email | Abierto |
 | DEF-006 | Media | `PublishPackUseCase` | No se validan precios positivos | Abierto |
@@ -67,14 +67,14 @@
 | **Severidad** | Alta |
 | **Módulo** | `core/data` |
 | **Archivo** | `core/data/src/main/kotlin/com/aprovecha/app/data/repository/AuthRepositoryImpl.kt` |
-| **Líneas** | 55-57 |
+| **Líneas** | 55-57 (original) → resuelto con `SessionManager` |
 | **Requisito afectado** | REQ-F01 (sesión), REQ-F03 (usuario debe estar logueado para ver packs), REQ-F04 |
-| **Descripción** | `getCurrentUser()` siempre retorna `null` y `logout()` es un no-op. No existe ningún mecanismo de persistencia de sesión: la app no puede conocer qué usuario está logueado entre pantallas o reinicios. |
-| **Código afectado** | `override suspend fun getCurrentUser(): User? = null` |
-| **Impacto** | Cualquier función que intente obtener el usuario logueado recibirá null, forzando al usuario a re-loguearse o provocando crashes/comportamiento indefinido. La funcionalidad de "mis reservas" (REQ-F04) y "publicar pack" (REQ-F02) dependen de conocer el userId actual. |
-| **Pasos para reproducir** | 1. Hacer login con credenciales válidas. 2. Navegar a "Mis Reservas". 3. Verificar que el userId para filtrar reservas no puede obtenerse de `getCurrentUser()`. |
-| **Corrección sugerida** | Implementar sesión en memoria con `companion object` o usar `DataStore` para persistir el userId entre reinicios. |
-| **Estado** | Abierto |
+| **Descripción** | `getCurrentUser()` siempre retornaba `null` y `logout()` era un no-op. No existía ningún mecanismo de persistencia de sesión. |
+| **Código afectado** | `override suspend fun getCurrentUser(): User? = null` (versión original) |
+| **Impacto** | Cualquier función que intente obtener el usuario logueado recibiría null, forzando al usuario a re-loguearse o provocando crashes/comportamiento indefinido. |
+| **Corrección aplicada** | Se implementó `SessionManager` (`core/data/src/main/kotlin/com/aprovecha/app/data/local/datastore/SessionManager.kt`) usando Jetpack DataStore para persistir la sesión del usuario. `AuthRepositoryImpl` ahora inyecta `SessionManager` y llama `saveSession()` en login/register, `getCurrentUser()` delega a `sessionManager.getCurrentUser()`, y `logout()` llama `sessionManager.clearSession()`. |
+| **Tests de regresión** | `SessionManagerTest.kt` (4 tests) + 5 tests nuevos en `AuthRepositoryImplTest.kt` |
+| **Estado** | ✅ Resuelto (commit: feat perfil + sesión DataStore) |
 
 ---
 
@@ -137,11 +137,11 @@
 
 ## Resumen Ejecutivo
 
-| Severidad | Cantidad |
-|-----------|----------|
-| Alta | 2 (DEF-001, DEF-003) |
-| Media | 3 (DEF-002, DEF-004, DEF-006) |
-| Baja | 1 (DEF-005) |
-| **Total** | **6** |
+| Severidad | Cantidad | Abiertos | Resueltos |
+|-----------|----------|----------|-----------|
+| Alta | 2 (DEF-001, DEF-003) | 1 (DEF-001) | 1 (DEF-003) |
+| Media | 3 (DEF-002, DEF-004, DEF-006) | 3 | 0 |
+| Baja | 1 (DEF-005) | 1 | 0 |
+| **Total** | **6** | **5** | **1** |
 
-Los defectos de severidad **Alta** (DEF-001 y DEF-003) representan problemas de seguridad y funcionalidad core que deben priorizarse. Los defectos de severidad **Media** afectan requisitos funcionales especificados (REQ-F03, REQ-F06, REQ-F02). El defecto de severidad **Baja** (DEF-005) representa una brecha de validación de datos que debería corregirse antes de producción.
+**DEF-003 fue resuelto** mediante la implementación de `SessionManager` con Jetpack DataStore. Los defectos abiertos restantes son deuda técnica conocida y están documentados para priorización futura. DEF-001 (hash inseguro) es el más crítico para producción.
