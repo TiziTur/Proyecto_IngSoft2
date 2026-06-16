@@ -10,6 +10,7 @@ import com.aprovecha.app.domain.repository.PackRepository
 import com.aprovecha.app.domain.repository.ReservationRepository
 import com.aprovecha.app.domain.usecase.pack.PublishPackUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.aprovecha.app.domain.model.ReservationStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,6 +39,24 @@ sealed class ActionState {
     data class Error(val message: String) : ActionState()
 }
 
+data class PendingReservation(
+    val reservationId: Long,
+    val packId: Long,
+    val fechaReserva: java.time.LocalDateTime
+)
+
+data class CommerceStats(
+    val pendingCount: Int = 0,
+    val completedCount: Int = 0,
+    val totalReservations: Int = 0
+)
+
+sealed class PendingReservationsUiState {
+    data object Loading : PendingReservationsUiState()
+    data class Success(val pending: List<PendingReservation>) : PendingReservationsUiState()
+    data class Error(val message: String) : PendingReservationsUiState()
+}
+
 @HiltViewModel
 class ReservationsViewModel @Inject constructor(
     private val reservationRepository: ReservationRepository,
@@ -60,6 +79,12 @@ class ReservationsViewModel @Inject constructor(
 
     private val _actionState = MutableStateFlow<ActionState>(ActionState.Idle)
     val actionState: StateFlow<ActionState> = _actionState.asStateFlow()
+
+    private val _pendingReservationsState = MutableStateFlow<PendingReservationsUiState>(PendingReservationsUiState.Loading)
+    val pendingReservationsState: StateFlow<PendingReservationsUiState> = _pendingReservationsState.asStateFlow()
+
+    private val _commerceStatsState = MutableStateFlow(CommerceStats())
+    val commerceStatsState: StateFlow<CommerceStats> = _commerceStatsState.asStateFlow()
 
     // @REQ-F06: Cargar reservas del usuario de la sesión activa
     fun loadUserReservations() {
@@ -135,4 +160,34 @@ class ReservationsViewModel @Inject constructor(
     }
 
     fun resetAction() { _actionState.value = ActionState.Idle }
+
+    // @REQ-F05: Cargar reservas pendientes del comercio (estado RESERVED)
+    fun loadPendingReservations() {
+        viewModelScope.launch {
+            val commerceId = authRepository.getCurrentUser()?.id
+            if (commerceId == null) {
+                _pendingReservationsState.value = PendingReservationsUiState.Error(SESSION_ERROR_MESSAGE)
+                return@launch
+            }
+            reservationRepository.getReservationsByCommerce(commerceId)
+                .catch {
+                    _pendingReservationsState.value = PendingReservationsUiState.Error(it.message ?: GENERIC_ERROR_MESSAGE)
+                }
+                .collect { list ->
+                    val pending = list
+                        .filter { it.status == ReservationStatus.RESERVED }
+                        .map { PendingReservation(it.id, it.packId, it.fechaReserva) }
+                    _pendingReservationsState.value = PendingReservationsUiState.Success(pending)
+                    updateCommerceStats(list)
+                }
+        }
+    }
+
+    private fun updateCommerceStats(reservations: List<Reservation>) {
+        _commerceStatsState.value = CommerceStats(
+            pendingCount = reservations.count { it.status == ReservationStatus.RESERVED },
+            completedCount = reservations.count { it.status == ReservationStatus.WITHDRAWN },
+            totalReservations = reservations.size
+        )
+    }
 }

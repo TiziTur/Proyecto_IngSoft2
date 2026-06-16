@@ -12,6 +12,8 @@ import com.aprovecha.app.domain.repository.ReservationRepository
 import com.aprovecha.app.domain.usecase.pack.PublishPackUseCase
 import com.aprovecha.app.feature.reservations.ui.ActionState
 import com.aprovecha.app.feature.reservations.ui.CommercePacksState
+import com.aprovecha.app.feature.reservations.ui.PendingReservation
+import com.aprovecha.app.feature.reservations.ui.PendingReservationsUiState
 import com.aprovecha.app.feature.reservations.ui.ReservationsUiState
 import com.aprovecha.app.feature.reservations.ui.ReservationsViewModel
 import io.mockk.coEvery
@@ -369,5 +371,101 @@ class ReservationsViewModelTest {
         val state = viewModel.commercePacksState.value
         assertTrue(state is CommercePacksState.Error)
         assertTrue((state as CommercePacksState.Error).message.contains("Sesión"))
+    }
+
+    // ── loadPendingReservations ─────────────────────────────────────────────
+
+    /**
+     * Given: comercio con sesión activa tiene reservas RESERVED
+     * When: se llama loadPendingReservations
+     * Then: pendingReservationsState emite Success con las reservas pendientes
+     */
+    @Test
+    fun `Given commerce has RESERVED reservations When loadPendingReservations called Then pendingReservationsState emits Success`() = runTest {
+        val reservations = listOf(
+            buildReservation(1L, ReservationStatus.RESERVED),
+            buildReservation(2L, ReservationStatus.RESERVED),
+            buildReservation(3L, ReservationStatus.WITHDRAWN)
+        )
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
+        every { reservationRepository.getReservationsByUser(any()) } returns flowOf(emptyList())
+        every { packRepository.getPacksByCommerce(any()) } returns flowOf(emptyList())
+        every { reservationRepository.getReservationsByCommerce(1L) } returns flowOf(reservations)
+
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadPendingReservations()
+        advanceUntilIdle()
+
+        val state = viewModel.pendingReservationsState.value
+        assertTrue(state is PendingReservationsUiState.Success)
+        assertEquals(2, (state as PendingReservationsUiState.Success).pending.size)
+    }
+
+    /**
+     * Given: no hay sesión activa
+     * When: se llama loadPendingReservations
+     * Then: pendingReservationsState emite Error con mensaje de sesión
+     */
+    @Test
+    fun `Given no session When loadPendingReservations called Then pendingReservationsState emits Error`() = runTest {
+        coEvery { authRepository.getCurrentUser() } returns null
+
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadPendingReservations()
+        advanceUntilIdle()
+
+        val state = viewModel.pendingReservationsState.value
+        assertTrue(state is PendingReservationsUiState.Error)
+        assertTrue((state as PendingReservationsUiState.Error).message.contains("Sesión"))
+    }
+
+    /**
+     * Given: comercio tiene reservas con distintos estados
+     * When: se llama loadPendingReservations
+     * Then: commerceStatsState refleja conteos correctos
+     */
+    @Test
+    fun `Given mixed reservations When loadPendingReservations called Then commerceStatsState has correct counts`() = runTest {
+        val reservations = listOf(
+            buildReservation(1L, ReservationStatus.RESERVED),
+            buildReservation(2L, ReservationStatus.WITHDRAWN),
+            buildReservation(3L, ReservationStatus.WITHDRAWN),
+            buildReservation(4L, ReservationStatus.CANCELLED)
+        )
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
+        every { reservationRepository.getReservationsByUser(any()) } returns flowOf(emptyList())
+        every { packRepository.getPacksByCommerce(any()) } returns flowOf(emptyList())
+        every { reservationRepository.getReservationsByCommerce(1L) } returns flowOf(reservations)
+
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadPendingReservations()
+        advanceUntilIdle()
+
+        val stats = viewModel.commerceStatsState.value
+        assertEquals(1, stats.pendingCount)
+        assertEquals(2, stats.completedCount)
+        assertEquals(4, stats.totalReservations)
+    }
+
+    /**
+     * Given: repositorio lanza excepción
+     * When: loadPendingReservations falla
+     * Then: pendingReservationsState emite Error
+     */
+    @Test
+    fun `Given repository throws When loadPendingReservations called Then pendingReservationsState emits Error`() = runTest {
+        coEvery { authRepository.getCurrentUser() } returns buildUser(1L)
+        every { reservationRepository.getReservationsByUser(any()) } returns flowOf(emptyList())
+        every { packRepository.getPacksByCommerce(any()) } returns flowOf(emptyList())
+        every {
+            reservationRepository.getReservationsByCommerce(any())
+        } returns kotlinx.coroutines.flow.flow { throw RuntimeException("DB error") }
+
+        viewModel = ReservationsViewModel(reservationRepository, packRepository, publishPackUseCase, authRepository)
+        viewModel.loadPendingReservations()
+        advanceUntilIdle()
+
+        val state = viewModel.pendingReservationsState.value
+        assertTrue(state is PendingReservationsUiState.Error)
     }
 }
