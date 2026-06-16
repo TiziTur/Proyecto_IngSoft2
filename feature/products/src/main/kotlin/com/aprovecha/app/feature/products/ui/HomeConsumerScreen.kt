@@ -147,7 +147,7 @@ fun HomeConsumerScreen(
 }
 
 @Composable
-private fun PackCard(pack: FoodPack, onClick: () -> Unit) {
+internal fun PackCard(pack: FoodPack, onClick: () -> Unit) {
     val discountPct = ((1 - pack.discountPrice / pack.originalPrice) * 100).toInt()
 
     Card(

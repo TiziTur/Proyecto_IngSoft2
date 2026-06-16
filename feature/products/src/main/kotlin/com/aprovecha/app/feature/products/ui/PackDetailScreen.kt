@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Store
@@ -42,6 +43,7 @@ fun PackDetailScreen(
 ) {
     val pack by viewModel.selectedPack.collectAsState()
     val reserveState by viewModel.reserveState.collectAsState()
+    val favoritePackIds by viewModel.favoritePackIds.collectAsState()
     var showErrorDialog by remember { mutableStateOf(false) }
     var pickupTermsAccepted by remember { mutableStateOf(false) }
 
@@ -101,8 +103,13 @@ fun PackDetailScreen(
                 IconButton(onClick = onBack) {
                     Icon(Icons.Default.ArrowBack, contentDescription = "Volver", tint = Color.White)
                 }
-                IconButton(onClick = {}) {
-                    Icon(Icons.Default.FavoriteBorder, contentDescription = "Favorito", tint = Color.White)
+                IconButton(onClick = { pack?.id?.let { viewModel.toggleFavorite(it) } }) {
+                    val isFav = pack?.id?.let { it in favoritePackIds } == true
+                    Icon(
+                        imageVector = if (isFav) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorito",
+                        tint = if (isFav) MaterialTheme.colorScheme.tertiary else Color.White
+                    )
                 }
             }
 

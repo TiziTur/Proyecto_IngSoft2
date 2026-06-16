@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.aprovecha.app.common.util.Result
 import com.aprovecha.app.domain.model.FoodPack
 import com.aprovecha.app.domain.repository.AuthRepository
+import com.aprovecha.app.domain.repository.FavoriteRepository
 import com.aprovecha.app.domain.repository.PackRepository
 import com.aprovecha.app.domain.repository.ReservationRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,7 +36,8 @@ sealed class ReserveUiState {
 class ProductsViewModel @Inject constructor(
     private val packRepository: PackRepository,
     private val reservationRepository: ReservationRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val favoriteRepository: FavoriteRepository
 ) : ViewModel() {
 
     private companion object {
@@ -54,11 +56,23 @@ class ProductsViewModel @Inject constructor(
     private val _reserveState = MutableStateFlow<ReserveUiState>(ReserveUiState.Idle)
     val reserveState: StateFlow<ReserveUiState> = _reserveState.asStateFlow()
 
+    private val _favoritePackIds = MutableStateFlow<Set<Long>>(emptySet())
+    val favoritePackIds: StateFlow<Set<Long>> = _favoritePackIds.asStateFlow()
+
     init {
         loadNearbyPacks()
+        loadFavoriteIds()
     }
 
-    // @REQ-F03: Cargar packs cercanos (MVP: radio default 5km)
+    private fun loadFavoriteIds() {
+        viewModelScope.launch {
+            val userId = authRepository.getCurrentUser()?.id ?: return@launch
+            favoriteRepository.getFavoritePackIds(userId)
+                .catch { }
+                .collect { ids -> _favoritePackIds.value = ids }
+        }
+    }
+
     fun loadNearbyPacks(
         lat: Double = DEFAULT_LATITUDE,
         lng: Double = DEFAULT_LONGITUDE,
@@ -75,13 +89,12 @@ class ProductsViewModel @Inject constructor(
         viewModelScope.launch {
             when (val result = packRepository.getPackById(packId)) {
                 is Result.Success -> _selectedPack.value = result.data
-                is Result.Error -> { /* mantener null */ }
+                is Result.Error -> { }
                 else -> {}
             }
         }
     }
 
-    // @REQ-F04: Reservar pack usando el usuario de la sesión activa
     fun reservePack(packId: Long) {
         viewModelScope.launch {
             val userId = authRepository.getCurrentUser()?.id
@@ -95,6 +108,13 @@ class ProductsViewModel @Inject constructor(
                 is Result.Error -> ReserveUiState.Error(result.exception.message ?: "Error al reservar")
                 else -> ReserveUiState.Error("Error inesperado")
             }
+        }
+    }
+
+    fun toggleFavorite(packId: Long) {
+        viewModelScope.launch {
+            val userId = authRepository.getCurrentUser()?.id ?: return@launch
+            favoriteRepository.toggleFavorite(userId, packId)
         }
     }
 
